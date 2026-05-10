@@ -28,9 +28,10 @@
                     <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">المخزن السحابي المشترك</span>
                 </div>
             </div>
-            <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-2">
-                <button onclick="showPage('home')" id="btn-home" class="nav-btn active px-8 py-2.5 rounded-xl font-black text-sm transition-all shadow-lg">الرئيسية</button>
-                <button onclick="showPage('sheets')" id="btn-sheets" class="nav-btn px-8 py-2.5 rounded-xl font-black text-sm text-slate-500 transition-all">المستودع</button>
+            <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-1">
+                <button onclick="showPage('home')" id="btn-home" class="nav-btn active px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all shadow-lg">الرئيسية</button>
+                <button onclick="showPage('sheets')" id="btn-sheets" class="nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm text-slate-500 transition-all">المستودع</button>
+                <button onclick="showPage('weights')" id="btn-weights" class="nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm text-slate-500 transition-all">أوزان القوالب</button>
             </div>
         </div>
     </nav>
@@ -38,79 +39,83 @@
     <main class="max-w-7xl mx-auto p-4 md:p-8">
         <div id="page-home" class="space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                
                 <div class="lg:col-span-8 space-y-6">
                     <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 flex flex-col">
-                        <div class="flex justify-between items-center mb-6">
+                        <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                             <h3 class="text-2xl font-black flex items-center gap-2"><span>🔍</span> تجهيز الطلبية</h3>
-                            <div class="bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 text-center">
-                                <span class="text-[10px] font-black text-blue-400 block uppercase">إجمالي الوزن (كجم)</span>
-                                <span id="grand-total-weight" class="text-xl font-black text-blue-700">0.000</span>
+                            <div class="flex gap-2">
+                                <div class="bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 text-center">
+                                    <span class="text-[10px] font-black text-blue-400 block uppercase">عدد القوالب</span>
+                                    <span id="total-items-count" class="text-xl font-black text-blue-700">0</span>
+                                </div>
+                                <div class="bg-emerald-50 px-4 py-2 rounded-2xl border border-emerald-100 text-center">
+                                    <span class="text-[10px] font-black text-emerald-400 block uppercase">إجمالي الوزن (كجم)</span>
+                                    <span id="grand-total-weight" class="text-xl font-black text-emerald-700">0.000</span>
+                                </div>
                             </div>
                         </div>
-                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا.. (يمكنك لصق صفوف من إكسيل مباشرة كود + كمية)" class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-6 outline-none focus:ring-2 focus:ring-slate-200 transition-all"></textarea>
-                        <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا.. (كود + كمية)" class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200"></textarea>
+                        
+                        <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+
+                        <button onclick="processOrderDispatch()" id="dispatch-btn" class="hidden w-full bg-red-600 text-white p-5 rounded-[1.5rem] font-black text-lg hover:bg-red-700 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                            <span>📤</span> صرف الطلبية بالكامل من المخزن
+                        </button>
                     </div>
 
                     <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
-                        <h3 class="text-xl font-black mb-4 flex items-center gap-2"><span>📜</span> سجل أحدث العمليات (صرف وإضافة)</h3>
-                        <div id="activity-log" class="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
-                            <p class="text-slate-400 text-center py-10 italic">لا توجد عمليات مسجلة حالياً</p>
-                        </div>
+                        <h3 class="text-xl font-black mb-4 flex items-center gap-2"><span>📜</span> سجل أحدث العمليات</h3>
+                        <div id="activity-log" class="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar"></div>
                     </div>
                 </div>
 
                 <div class="lg:col-span-4 space-y-6">
                     <div class="bg-white p-6 rounded-[2rem] shadow-md border border-slate-100">
-                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">اسم المسؤول عن العملية</label>
-                        <input type="text" id="user-name" placeholder="مثال: أحمد محمد" class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none focus:ring-2 focus:ring-blue-400">
+                        <label class="block text-[10px] font-black text-slate-400 uppercase mb-2">اسم المسؤول</label>
+                        <input type="text" id="user-name" placeholder="اسمك هنا.." class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
                     </div>
-
                     <div class="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-xl">
-                        <h3 class="font-black text-xl mb-4 flex items-center gap-2"><span>📥</span> إضافة رصيد</h3>
+                        <h3 class="font-black text-xl mb-4">📥 إضافة رصيد</h3>
                         <div class="space-y-3">
-                            <input type="text" id="add-c" placeholder="كود المنتج" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
+                            <input type="text" id="add-c" placeholder="الكود" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
                             <input type="number" id="add-q" placeholder="الكمية" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
-                            <button onclick="invAction('add')" class="w-full bg-white text-black p-4 rounded-2xl font-black hover:bg-slate-100 shadow-lg transition-all active:scale-95">تحديث الرصيد</button>
-                        </div>
-                    </div>
-
-                    <div class="bg-red-600 text-white rounded-[2.5rem] p-8 shadow-xl">
-                        <h3 class="font-black text-xl mb-4 flex items-center gap-2"><span>📤</span> صرف رصيد</h3>
-                        <div class="space-y-3">
-                            <input type="text" id="sub-c" placeholder="كود المنتج" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
-                            <input type="number" id="sub-q" placeholder="الكمية" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
-                            <button onclick="invAction('sub')" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black hover:bg-black shadow-lg transition-all active:scale-95">خصم الرصيد</button>
+                            <button onclick="invAction('add')" class="w-full bg-white text-black p-4 rounded-2xl font-black hover:bg-slate-100">تحديث الرصيد</button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="page-sheets" class="hidden">
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                <div id="sheet-tabs" class="flex gap-2 overflow-x-auto p-2 no-scrollbar w-full md:w-auto"></div>
-                <div class="flex gap-2">
-                    <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg hover:bg-emerald-700 transition-all flex items-center gap-2">
-                        <span>📊</span> تصدير Excel
-                    </button>
-                    <label class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg hover:bg-blue-700 transition-all cursor-pointer flex items-center gap-2">
-                        <span>📥</span> استيراد Excel
-                        <input type="file" id="import-excel" class="hidden" accept=".xlsx, .xls" onchange="importFromExcel(event)">
-                    </label>
+        <div id="page-weights" class="hidden space-y-6">
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-2xl font-black italic">⚖️ إدارة أوزان القوالب</h3>
+                    <div class="text-slate-400 text-xs font-bold">يمكنك إضافة أو تعديل وزن أي كود يدوياً</div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                    <input type="text" id="new-weight-code" placeholder="الكود" class="p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
+                    <input type="number" id="new-weight-val" placeholder="الوزن بالجرام" class="p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
+                    <button onclick="updateWeightManually()" class="bg-black text-white p-4 rounded-2xl font-black">حفظ الوزن</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-400 text-xs font-black uppercase">
+                                <th class="p-6 text-center">الكود</th>
+                                <th class="p-6 text-center">الوزن (جرام)</th>
+                                <th class="p-6 text-center">حذف</th>
+                            </tr>
+                        </thead>
+                        <tbody id="weights-body"></tbody>
+                    </table>
                 </div>
             </div>
+        </div>
+
+        <div id="page-sheets" class="hidden">
+            <div id="sheet-tabs" class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar"></div>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
-                <table class="w-full text-right border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest text-center">
-                            <th class="p-6">الكود</th>
-                            <th class="p-6">الرصيد المتاح</th>
-                            <th class="p-6">الإجراءات</th>
-                        </tr>
-                    </thead>
-                    <tbody id="sheet-body"></tbody>
-                </table>
+                <table class="w-full text-right"><tbody id="sheet-body"></tbody></table>
             </div>
         </div>
     </main>
@@ -121,7 +126,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // إعدادات فايربيز الخاصة بك
         const firebaseConfig = {
             apiKey: "AIzaSyCgcTyvyFsEf0GZYZ6wnGD5qvJfWVMrs50",
             authDomain: "diamond-plast.firebaseapp.com",
@@ -137,53 +141,157 @@
         const db = getDatabase(app);
         const invRef = ref(db, 'inventory');
         const logsRef = ref(db, 'logs');
+        const weightsRef = ref(db, 'custom_weights');
 
-        // الأقسام المعدلة حسب طلبك
         const CATS = ['T', 'S', 'C', 'G', 'R', 'E', 'Y&'];
-        const weightDatabase = { "T-7000": 379, "T-7001": 406, "S-4018": 394, "C-5001": 466, "G-8000": 542 };
+        
+        // الأوزان الحقيقية من ملفاتك (سيتم دمجها مع الأوزان المخصصة في السحابة)
+        const MASTER_WEIGHTS = {
+            "7000": 379, "7001": 406, "7003": 384, "7005": 416, "7007": 419, "7009": 369, "7010": 368, "7011": 372, "7015": 389, "7016": 322, "7019": 449, "7023": 392, "7024": 415, "7028": 395, "7037": 380, "7038": 365, "7041": 400, "7046": 407, "7047": 384, "7048": 383, "7052": 439, "7054": 445, "7059": 324, "7062": 364, "7063": 335, "7064": 348, "7066": 330, "7067": 350, "7068": 388, "4001": 338, "4002": 344, "4004": 381, "4005": 484, "4007": 382, "4008": 461, "4009": 348, "4010": 549, "4011": 470, "4012": 447, "4013": 463, "4014": 374, "4017": 396, "4018": 394, "4019": 297, "4020": 418, "4021": 346, "4023": 364, "4024": 373, "4025": 357, "4026": 380, "4027": 441, "4028": 358, "4029": 319, "4031": 363, "4032": 368, "4033": 408, "4034": 450, "4036": 376, "4039": 421, "4041": 354, "4042": 336, "3000": 365, "3001": 411, "3004": 444, "3006": 525, "3008": 377, "3009": 386, "3011": 391, "3012": 457, "3013": 387, "3014": 468, "3015": 340, "3016": 330, "3018": 361, "3020": 394, "3021": 390, "3022": 422, "3023": 508, "3024": 367, "3025": 409, "3026": 438, "3027": 402, "3028": 382, "3029": 377, "3030": 462, "3031": 462, "3033": 379, "3034": 409, "3036": 391, "3038": 443, "3041": 468, "3042": 380, "3043": 418, "3044": 416, "5001": 466, "8000": 542, "6000": 456
+        };
 
         window.inventory = {};
-        let orderQuantities = {};
+        window.customWeights = {};
+        let orderItems = {}; 
         window.currentTab = 'T';
 
-        // الاستماع للبيانات (المخزن + السجلات)
-        onValue(invRef, (snapshot) => {
-            window.inventory = snapshot.val() || {};
-            CATS.forEach(c => { if(!window.inventory[c]) window.inventory[c] = []; });
-            renderSheets();
-            updateHomeSearch();
-        });
+        // دمج الأوزان
+        function getWeight(code) {
+            let pureCode = code.replace(/[^0-9]/g, '');
+            return window.customWeights[code] || MASTER_WEIGHTS[pureCode] || 0;
+        }
 
-        onValue(logsRef, (snapshot) => {
-            const logs = snapshot.val();
-            renderLogs(logs);
-        });
-
-        window.save = function() {
-            set(invRef, window.inventory);
-        };
-
-        window.logActivity = function(type, code, qty, cat) {
-            const userName = document.getElementById('user-name').value || "غير معرف";
-            const newLog = {
-                date: new Date().toLocaleString('ar-EG'),
-                type: type === 'add' ? 'إضافة' : 'صرف',
-                code: code,
-                qty: qty,
-                cat: cat,
-                user: userName
-            };
-            push(logsRef, newLog);
-        };
+        onValue(invRef, s => { window.inventory = s.val() || {}; CATS.forEach(c => { if(!window.inventory[c]) window.inventory[c] = []; }); renderSheets(); updateHomeSearch(); });
+        onValue(logsRef, s => { renderLogs(s.val()); });
+        onValue(weightsRef, s => { window.customWeights = s.val() || {}; renderWeightsPage(); updateHomeSearch(); });
 
         window.showPage = function(p) {
-            ['home', 'sheets'].forEach(page => {
-                document.getElementById(`page-${page}`).classList.toggle('hidden', page !== p);
+            ['home', 'sheets', 'weights'].forEach(page => {
+                const el = document.getElementById(`page-${page}`);
+                if(el) el.classList.toggle('hidden', page !== p);
                 const btn = document.getElementById(`btn-${page}`);
-                if(btn) btn.className = (page === p) ? 'nav-btn active px-8 py-2.5 rounded-xl font-black text-sm shadow-lg' : 'nav-btn px-8 py-2.5 rounded-xl font-black text-sm text-slate-500 transition-all';
+                if(btn) btn.className = (page === p) ? 'nav-btn active px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all shadow-lg' : 'nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm text-slate-500 transition-all';
             });
-            if(p === 'sheets') renderSheets();
         };
+
+        window.handleBulkInput = function() {
+            const raw = document.getElementById('home-bulk').value.trim();
+            orderItems = {};
+            if(raw) {
+                raw.split('\n').forEach(line => {
+                    const parts = line.split(/\t|\s+/);
+                    const code = parts[0]?.toUpperCase().trim();
+                    const qty = parseFloat(parts[1]);
+                    if(code && !isNaN(qty)) orderItems[code] = qty;
+                });
+            }
+            updateHomeSearch();
+        };
+
+        window.updateHomeSearch = function() {
+            const res = document.getElementById('home-results');
+            res.innerHTML = '';
+            let totalW = 0;
+            let totalQ = 0;
+            const codes = Object.keys(orderItems);
+
+            codes.forEach(c => {
+                const info = window.find(c);
+                const qty = orderItems[c];
+                const weight = getWeight(c);
+                totalW += (qty * weight);
+                totalQ += qty;
+
+                const div = document.createElement('div');
+                div.className = "p-4 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col gap-2";
+                div.innerHTML = `
+                    <div class="flex justify-between font-black">
+                        <span>${c} (رصيد: ${info?.item.base || 0})</span>
+                        <span class="text-blue-600">${qty} قطعة</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-slate-400">الوزن (جرام):</span>
+                        <input type="number" value="${weight}" onchange="updateWeightDirectly('${c}', this.value)" class="w-20 p-1 rounded bg-white border text-center font-bold text-xs ${weight === 0 ? 'border-red-500 animate-pulse' : ''}" placeholder="0">
+                    </div>
+                `;
+                res.appendChild(div);
+            });
+
+            document.getElementById('grand-total-weight').innerText = (totalW / 1000).toFixed(3);
+            document.getElementById('total-items-count').innerText = totalQ;
+            document.getElementById('dispatch-btn').classList.toggle('hidden', codes.length === 0);
+        };
+
+        window.updateWeightDirectly = function(code, val) {
+            set(ref(db, `custom_weights/${code}`), parseFloat(val));
+            showToast("تم تحديث الوزن");
+        };
+
+        window.processOrderDispatch = function() {
+            const userName = document.getElementById('user-name').value;
+            if(!userName) return showToast("يرجى إدخال اسم المسؤول أولاً", "error");
+            if(!confirm("هل أنت متأكد من خصم كل كميات الطلبية من المخزن؟")) return;
+
+            Object.keys(orderItems).forEach(c => {
+                window.invAction('sub', c, orderItems[c], true);
+            });
+            
+            document.getElementById('home-bulk').value = '';
+            orderItems = {};
+            updateHomeSearch();
+            showToast("تم صرف الطلبية بالكامل");
+        };
+
+        window.invAction = function(type, codeParam, qtyParam, isBulk = false) {
+            const c = (codeParam || document.getElementById(`${type === 'add' ? 'add' : 'sub'}-c`).value).toUpperCase().trim();
+            const q = parseFloat(qtyParam || document.getElementById(`${type === 'add' ? 'add' : 'sub'}-q`).value);
+            const userName = document.getElementById('user-name').value || "غير معرف";
+
+            if(!c || isNaN(q)) return;
+
+            let info = window.find(c);
+            let targetCat = info ? info.cat : (CATS.includes(c.charAt(0)) ? c.charAt(0) : 'Y&');
+
+            if(info) {
+                info.item.base += (type === 'add' ? q : -q);
+            } else {
+                if(type === 'sub') return;
+                window.inventory[targetCat].push({ code: c, base: q });
+            }
+
+            set(invRef, window.inventory);
+            push(logsRef, { date: new Date().toLocaleString('ar-EG'), type: type === 'add' ? 'إضافة' : 'صرف', code: c, qty: q, cat: targetCat, user: userName });
+            
+            if(!isBulk) {
+                showToast(`تم التحديث في قسم (${targetCat})`);
+                document.getElementById(`${type === 'add' ? 'add' : 'sub'}-c`).value = '';
+                document.getElementById(`${type === 'add' ? 'add' : 'sub'}-q`).value = '';
+            }
+        };
+
+        window.renderWeightsPage = function() {
+            const body = document.getElementById('weights-body');
+            // عرض الأوزان المخصصة فقط في الجدول للتحكم بها
+            body.innerHTML = Object.keys(window.customWeights).map(c => `
+                <tr class="border-b">
+                    <td class="p-4 text-center font-black">${c}</td>
+                    <td class="p-4 text-center font-bold text-blue-600">${window.customWeights[c]}</td>
+                    <td class="p-4 text-center"><button onclick="deleteWeight('${c}')">🗑️</button></td>
+                </tr>
+            `).join('');
+        };
+
+        window.updateWeightManually = function() {
+            const c = document.getElementById('new-weight-code').value.toUpperCase().trim();
+            const v = parseFloat(document.getElementById('new-weight-val').value);
+            if(c && !isNaN(v)) {
+                set(ref(db, `custom_weights/${c}`), v);
+                document.getElementById('new-weight-code').value = '';
+                document.getElementById('new-weight-val').value = '';
+            }
+        };
+
+        window.deleteWeight = function(c) { if(confirm("حذف الوزن؟")) set(ref(db, `custom_weights/${c}`), null); };
 
         window.find = function(c) {
             for(let cat in window.inventory) {
@@ -193,135 +301,31 @@
             return null;
         };
 
-        window.invAction = function(type, codeParam = null, qtyParam = null) {
-            const c = (codeParam || document.getElementById(`${type === 'add' ? 'add' : 'sub'}-c`).value).toUpperCase().trim();
-            const q = parseFloat(qtyParam || document.getElementById(`${type === 'add' ? 'add' : 'sub'}-q`).value);
-            
-            if(!c || isNaN(q)) return showToast("يرجى إدخال الكود والكمية", "error");
-
-            let info = window.find(c);
-            let targetCat = "";
-
-            if(info) {
-                targetCat = info.cat;
-                if(type === 'sub' && info.item.base < q) return showToast(`الرصيد غير كافٍ في قسم (${targetCat})`, "error");
-                info.item.base += (type === 'add' ? q : -q);
-            } else {
-                if(type === 'sub') return showToast("الكود غير موجود للخصم", "error");
-                targetCat = CATS.includes(c.charAt(0)) ? c.charAt(0) : 'Y&';
-                window.inventory[targetCat].push({ code: c, base: q });
-            }
-
-            window.save();
-            window.logActivity(type, c, q, targetCat);
-            
-            if(!codeParam) {
-                document.getElementById(`${type === 'add' ? 'add' : 'sub'}-c`).value = '';
-                document.getElementById(`${type === 'add' ? 'add' : 'sub'}-q`).value = '';
-                showToast(`تم ${type === 'add' ? 'الإضافة إلى' : 'الخصم من'} قسم (${targetCat}) بنجاح`);
-            }
-        };
-
-        window.handleBulkInput = function() {
-            const raw = document.getElementById('home-bulk').value;
-            const lines = raw.split('\n').filter(l => l.trim() !== '');
-            lines.forEach(line => {
-                const parts = line.split('\t');
-                const code = parts[0]?.trim().toUpperCase();
-                const qty = parseFloat(parts[1]);
-                if (code && !isNaN(qty)) orderQuantities[code] = qty;
-            });
-            updateHomeSearch();
-        };
-
         function renderLogs(logs) {
-            const logContainer = document.getElementById('activity-log');
+            const container = document.getElementById('activity-log');
             if(!logs) return;
-            const sortedLogs = Object.values(logs).reverse().slice(0, 20); // عرض آخر 20 عملية
-            logContainer.innerHTML = sortedLogs.map(l => `
-                <div class="log-entry p-4 rounded-2xl bg-white border border-slate-50 shadow-sm flex flex-col md:flex-row justify-between items-center gap-2">
-                    <div class="flex items-center gap-3">
-                        <span class="${l.type === 'إضافة' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'} px-3 py-1 rounded-full text-[10px] font-black">${l.type}</span>
-                        <div class="font-black text-slate-800">${l.code}</div>
-                        <div class="text-blue-600 font-bold">${l.qty} قطعة</div>
+            const sorted = Object.values(logs).reverse().slice(0, 15);
+            container.innerHTML = sorted.map(l => `
+                <div class="log-entry p-3 rounded-xl bg-white border border-slate-50 shadow-sm flex flex-col md:flex-row justify-between items-center text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="${l.type==='إضافة'?'text-emerald-600':'text-red-600'} font-black">${l.type}</span>
+                        <span class="font-black">${l.code}</span>
+                        <span class="bg-slate-100 px-2 py-0.5 rounded-lg">${l.qty} قوالب</span>
                     </div>
-                    <div class="flex items-center gap-4 text-[11px] font-bold text-slate-400">
-                        <span>قسم: ${l.cat}</span>
-                        <span>بواسطة: ${l.user}</span>
-                        <span>${l.date}</span>
-                    </div>
+                    <div class="text-slate-400 font-bold">${l.user} - ${l.date}</div>
                 </div>
             `).join('');
         }
 
-        window.updateOrderQty = function(code, qty) {
-            orderQuantities[code] = parseFloat(qty) || 0;
-            let totalWeightGm = 0;
-            Object.keys(orderQuantities).forEach(c => {
-                totalWeightGm += (orderQuantities[c] * (weightDatabase[c] || 400));
-            });
-            document.getElementById('grand-total-weight').innerText = (totalWeightGm / 1000).toFixed(3);
-        };
-
-        window.updateHomeSearch = function() {
-            const raw = document.getElementById('home-bulk').value.toUpperCase();
-            const codes = [...new Set(raw.split('\n').map(l => l.split('\t')[0].trim()).filter(l => l !== ''))];
-            const res = document.getElementById('home-results');
-            res.innerHTML = '';
-            codes.forEach(c => {
-                const info = window.find(c);
-                const qty = orderQuantities[c] || 0;
-                const div = document.createElement('div');
-                div.className = "p-6 bg-slate-50 rounded-3xl border border-slate-100";
-                div.innerHTML = `<div class="font-black">${c} (رصيد: ${info?.item.base || 0})</div>
-                                 <input type="number" value="${qty}" oninput="updateOrderQty('${c}', this.value)" class="w-full mt-2 p-2 rounded-xl border-none outline-none font-black text-blue-600">`;
-                res.appendChild(div);
-            });
-        };
-
         window.renderSheets = function() {
             const tabs = document.getElementById('sheet-tabs');
-            tabs.innerHTML = CATS.map(c => `<button onclick="window.currentTab='${c}'; renderSheets()" class="px-8 py-3 rounded-xl font-black ${window.currentTab === c ? 'bg-black text-white shadow-lg' : 'bg-white text-slate-400 hover:bg-slate-50'} transition-all">${c === 'Y&' ? 'Y&' : c}</button>`).join('');
+            tabs.innerHTML = CATS.map(c => `<button onclick="window.currentTab='${c}'; renderSheets()" class="px-6 py-2 rounded-xl font-black whitespace-nowrap ${window.currentTab === c ? 'bg-black text-white' : 'bg-white text-slate-400'}">${c}</button>`).join('');
             const body = document.getElementById('sheet-body');
-            body.innerHTML = (window.inventory[window.currentTab]?.length > 0) ? window.inventory[window.currentTab].map(item => `
-                <tr class="border-b hover:bg-slate-50"><td class="p-6 text-center font-black text-lg">${item.code}</td><td class="p-6 text-center text-blue-600 font-bold text-lg">${item.base}</td>
-                <td class="p-6 text-center"><button onclick="deleteCode('${item.code}')" class="text-red-300 hover:text-red-600 transition-colors">🗑️</button></td></tr>`).join('') : '<tr><td colspan="3" class="p-20 text-center text-slate-300 italic font-bold">لا توجد بيانات مسجلة</td></tr>';
+            const items = window.inventory[window.currentTab] || [];
+            body.innerHTML = items.length ? items.map(i => `<tr class="border-b"><td class="p-6 text-center font-black">${i.code}</td><td class="p-6 text-center text-blue-600 font-bold">${i.base}</td><td class="p-6 text-center"><button onclick="deleteCode('${i.code}')">🗑️</button></td></tr>`).join('') : '<tr><td class="p-10 text-center italic text-slate-300">لا توجد أصناف</td></tr>';
         };
 
-        window.deleteCode = function(c) {
-            if(confirm(`حذف الكود ${c} نهائياً؟`)) {
-                for(let cat in window.inventory) window.inventory[cat] = window.inventory[cat].filter(x => x.code !== c);
-                window.save();
-            }
-        };
-
-        window.exportToExcel = function() {
-            const wb = XLSX.utils.book_new();
-            CATS.forEach(cat => {
-                if (window.inventory[cat]?.length > 0) {
-                    const wsData = window.inventory[cat].map(item => ({ "الكود": item.code, "الرصيد": item.base }));
-                    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(wsData), cat);
-                }
-            });
-            XLSX.writeFile(wb, "Diamond_Plast_Inventory.xlsx");
-        };
-
-        window.importFromExcel = function(event) {
-            const file = event.target.files[0];
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
-                const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
-                jsonData.forEach((row, idx) => {
-                    if (idx === 0) return;
-                    const code = row[0]?.toString().toUpperCase().trim();
-                    const qty = parseFloat(row[1]);
-                    if (code && !isNaN(qty)) window.invAction('add', code, qty);
-                });
-                showToast("تم استيراد البيانات وتحديثها");
-            };
-            reader.readAsArrayBuffer(file);
-        };
+        window.deleteCode = function(c) { if(confirm(`حذف ${c}؟`)) { for(let cat in window.inventory) window.inventory[cat] = window.inventory[cat].filter(x => x.code !== c); set(invRef, window.inventory); } };
 
         function showToast(m, t='success') {
             const el = document.getElementById('toast');
