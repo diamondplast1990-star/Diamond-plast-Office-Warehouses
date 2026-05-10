@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond Plast - نظام إدارة المخزن السحابي</title>
+    <title>Diamond Plast - النظام المتكامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -14,7 +14,6 @@
         input[type=number]::-webkit-inner-spin-button, 
         input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
         .log-entry { border-right: 4px solid #e2e8f0; transition: all 0.3s; }
-        .log-entry:hover { border-right-color: #0f172a; background: #f8fafc; }
     </style>
 </head>
 <body class="min-h-screen pb-20">
@@ -23,13 +22,10 @@
         <div class="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
             <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg">DP</div>
-                <div>
-                    <h1 class="text-xl font-black leading-none">Diamond Plast</h1>
-                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">المخزن السحابي المشترك</span>
-                </div>
+                <h1 class="text-xl font-black">Diamond Plast</h1>
             </div>
             <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-1">
-                <button onclick="showPage('home')" id="btn-home" class="nav-btn active px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all shadow-lg">الرئيسية</button>
+                <button onclick="showPage('home')" id="btn-home" class="nav-btn active px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all">الرئيسية</button>
                 <button onclick="showPage('sheets')" id="btn-sheets" class="nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm text-slate-500 transition-all">المستودع</button>
                 <button onclick="showPage('weights')" id="btn-weights" class="nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm text-slate-500 transition-all">أوزان القوالب</button>
             </div>
@@ -40,9 +36,9 @@
         <div id="page-home" class="space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-8 space-y-6">
-                    <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100 flex flex-col">
+                    <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
                         <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
-                            <h3 class="text-2xl font-black flex items-center gap-2"><span>🔍</span> تجهيز الطلبية</h3>
+                            <h3 class="text-2xl font-black">🔍 تجهيز الطلبية</h3>
                             <div class="flex gap-2">
                                 <div class="bg-blue-50 px-4 py-2 rounded-2xl border border-blue-100 text-center">
                                     <span class="text-[10px] font-black text-blue-400 block uppercase">عدد القوالب</span>
@@ -54,17 +50,15 @@
                                 </div>
                             </div>
                         </div>
-                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا.. (كود + كمية)" class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200"></textarea>
-                        
+                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا (كود + كمية)" class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200"></textarea>
                         <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
-
-                        <button onclick="processOrderDispatch()" id="dispatch-btn" class="hidden w-full bg-red-600 text-white p-5 rounded-[1.5rem] font-black text-lg hover:bg-red-700 shadow-xl transition-all active:scale-95 flex items-center justify-center gap-3">
+                        <button onclick="processOrderDispatch()" id="dispatch-btn" class="hidden w-full bg-red-600 text-white p-5 rounded-[1.5rem] font-black text-lg hover:bg-red-700 shadow-xl transition-all flex items-center justify-center gap-3">
                             <span>📤</span> صرف الطلبية بالكامل من المخزن
                         </button>
                     </div>
 
                     <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
-                        <h3 class="text-xl font-black mb-4 flex items-center gap-2"><span>📜</span> سجل أحدث العمليات</h3>
+                        <h3 class="text-xl font-black mb-4">📜 سجل العمليات</h3>
                         <div id="activity-log" class="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar"></div>
                     </div>
                 </div>
@@ -82,40 +76,52 @@
                             <button onclick="invAction('add')" class="w-full bg-white text-black p-4 rounded-2xl font-black hover:bg-slate-100">تحديث الرصيد</button>
                         </div>
                     </div>
+                    <div class="bg-red-600 text-white rounded-[2.5rem] p-8 shadow-xl">
+                        <h3 class="font-black text-xl mb-4">📤 صرف رصيد</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="sub-c" placeholder="الكود" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
+                            <input type="number" id="sub-q" placeholder="الكمية" class="w-full p-4 rounded-2xl bg-white/10 border-none text-white font-bold outline-none">
+                            <button onclick="invAction('sub')" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black hover:bg-black">خصم الرصيد</button>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="page-sheets" class="hidden space-y-6">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div id="sheet-tabs" class="flex gap-2 overflow-x-auto p-2 no-scrollbar w-full md:w-auto"></div>
+                <div class="flex gap-2">
+                    <button onclick="exportToExcel()" class="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg flex items-center gap-2"><span>📊</span> تصدير Excel</button>
+                    <label class="bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-sm shadow-lg cursor-pointer flex items-center gap-2">
+                        <span>📥</span> استيراد Excel
+                        <input type="file" id="import-excel" class="hidden" accept=".xlsx, .xls" onchange="importFromExcel(event)">
+                    </label>
+                </div>
+            </div>
+            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
+                <table class="w-full text-right border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-400 text-xs font-black uppercase text-center">
+                            <th class="p-6">الكود</th>
+                            <th class="p-6">الرصيد المتاح</th>
+                            <th class="p-6">حذف</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sheet-body"></tbody>
+                </table>
             </div>
         </div>
 
         <div id="page-weights" class="hidden space-y-6">
             <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-2xl font-black italic">⚖️ إدارة أوزان القوالب</h3>
-                    <div class="text-slate-400 text-xs font-bold">يمكنك إضافة أو تعديل وزن أي كود يدوياً</div>
-                </div>
+                <h3 class="text-2xl font-black mb-6">⚖️ إدارة أوزان القوالب</h3>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-                    <input type="text" id="new-weight-code" placeholder="الكود" class="p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
+                    <input type="text" id="new-weight-code" placeholder="الكود (رقم فقط)" class="p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
                     <input type="number" id="new-weight-val" placeholder="الوزن بالجرام" class="p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
                     <button onclick="updateWeightManually()" class="bg-black text-white p-4 rounded-2xl font-black">حفظ الوزن</button>
                 </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-right border-collapse">
-                        <thead>
-                            <tr class="bg-slate-50 text-slate-400 text-xs font-black uppercase">
-                                <th class="p-6 text-center">الكود</th>
-                                <th class="p-6 text-center">الوزن (جرام)</th>
-                                <th class="p-6 text-center">حذف</th>
-                            </tr>
-                        </thead>
-                        <tbody id="weights-body"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="page-sheets" class="hidden">
-            <div id="sheet-tabs" class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar"></div>
-            <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border border-slate-100">
-                <table class="w-full text-right"><tbody id="sheet-body"></tbody></table>
+                <div id="weights-list" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4"></div>
             </div>
         </div>
     </main>
@@ -145,9 +151,14 @@
 
         const CATS = ['T', 'S', 'C', 'G', 'R', 'E', 'Y&'];
         
-        // الأوزان الحقيقية من ملفاتك (سيتم دمجها مع الأوزان المخصصة في السحابة)
-        const MASTER_WEIGHTS = {
-            "7000": 379, "7001": 406, "7003": 384, "7005": 416, "7007": 419, "7009": 369, "7010": 368, "7011": 372, "7015": 389, "7016": 322, "7019": 449, "7023": 392, "7024": 415, "7028": 395, "7037": 380, "7038": 365, "7041": 400, "7046": 407, "7047": 384, "7048": 383, "7052": 439, "7054": 445, "7059": 324, "7062": 364, "7063": 335, "7064": 348, "7066": 330, "7067": 350, "7068": 388, "4001": 338, "4002": 344, "4004": 381, "4005": 484, "4007": 382, "4008": 461, "4009": 348, "4010": 549, "4011": 470, "4012": 447, "4013": 463, "4014": 374, "4017": 396, "4018": 394, "4019": 297, "4020": 418, "4021": 346, "4023": 364, "4024": 373, "4025": 357, "4026": 380, "4027": 441, "4028": 358, "4029": 319, "4031": 363, "4032": 368, "4033": 408, "4034": 450, "4036": 376, "4039": 421, "4041": 354, "4042": 336, "3000": 365, "3001": 411, "3004": 444, "3006": 525, "3008": 377, "3009": 386, "3011": 391, "3012": 457, "3013": 387, "3014": 468, "3015": 340, "3016": 330, "3018": 361, "3020": 394, "3021": 390, "3022": 422, "3023": 508, "3024": 367, "3025": 409, "3026": 438, "3027": 402, "3028": 382, "3029": 377, "3030": 462, "3031": 462, "3033": 379, "3034": 409, "3036": 391, "3038": 443, "3041": 468, "3042": 380, "3043": 418, "3044": 416, "5001": 466, "8000": 542, "6000": 456
+        // الأوزان المدمجة من الملفات المرفوعة
+        const STATIC_WEIGHTS = {
+            "7000": 379, "7001": 406, "7003": 384, "7005": 416, "7007": 419, "7009": 369, "7010": 368, "7011": 372, "7015": 389, "7016": 322, "7019": 449, "7023": 392, "7024": 415, "7028": 395, "7037": 380, "7038": 365, "7041": 400, "7046": 407, "7047": 384, "7048": 383, "7052": 439, "7054": 445, "7059": 324, "7062": 364, "7063": 335, "7064": 348, "7066": 330, "7067": 350, "7068": 388,
+            "4001": 338, "4002": 344, "4004": 381, "4005": 484, "4007": 382, "4008": 461, "4009": 348, "4010": 549, "4011": 470, "4012": 447, "4013": 463, "4014": 374, "4017": 396, "4018": 394, "4019": 297, "4020": 418, "4021": 346, "4023": 364, "4024": 373, "4025": 357, "4026": 380, "4027": 441, "4028": 358, "4029": 319, "4031": 363, "4032": 368, "4033": 408, "4034": 450, "4036": 376, "4039": 421, "4041": 354, "4042": 336, "4045": 481,
+            "3000": 365, "3001": 411, "3004": 444, "3006": 525, "3008": 377, "3009": 386, "3011": 391, "3012": 457, "3013": 387, "3014": 468, "3015": 340, "3016": 330, "3018": 361, "3020": 394, "3021": 390, "3022": 422, "3023": 508, "3024": 367, "3025": 409, "3026": 438, "3027": 402, "3028": 382, "3029": 377, "3030": 462, "3031": 462, "3033": 379, "3034": 409, "3036": 391, "3038": 443, "3041": 468, "3042": 380, "3043": 418, "3044": 416,
+            "5001": 466, "5002": 333, "5003": 391, "5004": 410, "5005": 464, "5006": 408, "5007": 438, "5009": 416, "5011": 442, "5012": 420, "5013": 406, "5018": 359, "5020": 486, "5022": 376, "5023": 402, "5025": 449, "5026": 468, "5028": 457, "5030": 450, "5031": 447, "5032": 388, "5033": 530, "5034": 518, "5035": 490, "5039": 380, "5040": 398, "5041": 293, "5042": 466, "5043": 396, "5047": 333, "5048": 390, "5049": 407,
+            "8000": 542, "8003": 379, "8006": 533, "8007": 391, "8008": 446, "8011": 360, "8013": 425, "8015": 415, "8016": 470, "8017": 419, "8018": 420, "8019": 419, "8020": 455, "8023": 387, "8024": 423, "8025": 374, "8026": 409, "8027": 392, "8028": 353, "8029": 364, "8030": 470, "8031": 381, "8032": 351, "8033": 371, "8034": 380, "8035": 288, "8036": 375, "8038": 478, "8041": 395, "8042": 425, "8043": 526, "8044": 477, "8055": 457, "8056": 323, "8086": 360, "8087": 438, "8088": 351, "8089": 421, "8090": 478, "8091": 420, "8092": 369, "8093": 357, "8094": 380, "8095": 362, "8096": 390, "8097": 328, "8098": 363, "8099": 385, "8100": 378, "8103": 442, "8104": 416, "8106": 497, "8107": 456, "8108": 417, "8109": 417, "8110": 377, "8111": 390, "8112": 429, "8113": 349, "8114": 349, "8116": 436, "8117": 454, "8118": 434, "8120": 403, "8121": 506, "8122": 444, "8123": 355,
+            "6000": 456, "6002": 376, "6003": 356, "6004": 412, "6005": 405, "6006": 468, "6007": 409, "6009": 434, "6010": 427, "6011": 400, "6012": 442, "6013": 327, "6014": 350, "6015": 435, "6016": 433, "6018": 377, "6019": 364, "6020": 448, "6021": 421, "6022": 401, "6023": 426, "6024": 408, "6025": 400, "6026": 396, "6027": 425, "6029": 453, "6030": 428, "6031": 470, "6032": 425, "6033": 417, "6034": 377, "6035": 309, "6037": 411, "6038": 416, "6039": 383, "6040": 462, "6041": 431, "6056": 411, "6057": 418, "6058": 494, "6059": 417, "6060": 519, "6061": 405, "6063": 393, "6064": 370, "6066": 428, "6067": 309, "6068": 353, "6070": 329, "6071": 389, "6072": 418, "6074": 380, "6075": 434, "6077": 379, "6078": 296, "6079": 413, "6080": 322, "6082": 348, "6083": 340, "6085": 482, "6086": 357, "6087": 409, "6088": 438, "6089": 435, "6090": 364, "6091": 400, "6093": 429, "6094": 409, "6095": 433, "6096": 481, "6102": 360, "6103": 463, "6104": 447, "6105": 351, "6106": 373, "6107": 387, "6108": 377, "6109": 329, "6110": 364, "6111": 382, "6112": 391, "6113": 431, "6114": 409, "6116": 419, "6117": 384, "6118": 369
         };
 
         window.inventory = {};
@@ -155,10 +166,10 @@
         let orderItems = {}; 
         window.currentTab = 'T';
 
-        // دمج الأوزان
-        function getWeight(code) {
-            let pureCode = code.replace(/[^0-9]/g, '');
-            return window.customWeights[code] || MASTER_WEIGHTS[pureCode] || 0;
+        // دالة ذكية للبحث عن الوزن (بالحرف أو بدونه)
+        function getWeight(fullCode) {
+            let pureCode = fullCode.replace(/[^0-9]/g, '');
+            return window.customWeights[fullCode] || window.customWeights[pureCode] || STATIC_WEIGHTS[pureCode] || 0;
         }
 
         onValue(invRef, s => { window.inventory = s.val() || {}; CATS.forEach(c => { if(!window.inventory[c]) window.inventory[c] = []; }); renderSheets(); updateHomeSearch(); });
@@ -167,10 +178,9 @@
 
         window.showPage = function(p) {
             ['home', 'sheets', 'weights'].forEach(page => {
-                const el = document.getElementById(`page-${page}`);
-                if(el) el.classList.toggle('hidden', page !== p);
+                document.getElementById(`page-${page}`).classList.toggle('hidden', page !== p);
                 const btn = document.getElementById(`btn-${page}`);
-                if(btn) btn.className = (page === p) ? 'nav-btn active px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm transition-all shadow-lg' : 'nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-xs md:text-sm text-slate-500 transition-all';
+                if(btn) btn.className = (page === p) ? 'nav-btn active px-4 md:px-8 py-2.5 rounded-xl font-black transition-all' : 'nav-btn px-4 md:px-8 py-2.5 rounded-xl font-black text-slate-500 transition-all';
             });
         };
 
@@ -191,8 +201,7 @@
         window.updateHomeSearch = function() {
             const res = document.getElementById('home-results');
             res.innerHTML = '';
-            let totalW = 0;
-            let totalQ = 0;
+            let totalW = 0, totalQ = 0;
             const codes = Object.keys(orderItems);
 
             codes.forEach(c => {
@@ -211,12 +220,10 @@
                     </div>
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] font-bold text-slate-400">الوزن (جرام):</span>
-                        <input type="number" value="${weight}" onchange="updateWeightDirectly('${c}', this.value)" class="w-20 p-1 rounded bg-white border text-center font-bold text-xs ${weight === 0 ? 'border-red-500 animate-pulse' : ''}" placeholder="0">
-                    </div>
-                `;
+                        <input type="number" value="${weight}" onchange="updateWeightDirectly('${c}', this.value)" class="w-20 p-1 rounded bg-white border text-center font-bold ${weight === 0 ? 'border-red-500' : ''}">
+                    </div>`;
                 res.appendChild(div);
             });
-
             document.getElementById('grand-total-weight').innerText = (totalW / 1000).toFixed(3);
             document.getElementById('total-items-count').innerText = totalQ;
             document.getElementById('dispatch-btn').classList.toggle('hidden', codes.length === 0);
@@ -228,113 +235,27 @@
         };
 
         window.processOrderDispatch = function() {
-            const userName = document.getElementById('user-name').value;
-            if(!userName) return showToast("يرجى إدخال اسم المسؤول أولاً", "error");
-            if(!confirm("هل أنت متأكد من خصم كل كميات الطلبية من المخزن؟")) return;
-
-            Object.keys(orderItems).forEach(c => {
-                window.invAction('sub', c, orderItems[c], true);
-            });
-            
-            document.getElementById('home-bulk').value = '';
-            orderItems = {};
-            updateHomeSearch();
-            showToast("تم صرف الطلبية بالكامل");
+            const user = document.getElementById('user-name').value;
+            if(!user) return showToast("يرجى إدخال اسم المسؤول", "error");
+            if(confirm("خصم الطلبية بالكامل؟")) {
+                Object.keys(orderItems).forEach(c => window.invAction('sub', c, orderItems[c], true));
+                document.getElementById('home-bulk').value = '';
+                orderItems = {};
+                updateHomeSearch();
+                showToast("تم صرف الطلبية بنجاح");
+            }
         };
 
         window.invAction = function(type, codeParam, qtyParam, isBulk = false) {
-            const c = (codeParam || document.getElementById(`${type === 'add' ? 'add' : 'sub'}-c`).value).toUpperCase().trim();
-            const q = parseFloat(qtyParam || document.getElementById(`${type === 'add' ? 'add' : 'sub'}-q`).value);
-            const userName = document.getElementById('user-name').value || "غير معرف";
-
-            if(!c || isNaN(q)) return;
+            const c = (codeParam || document.getElementById(`${type==='add'?'add':'sub'}-c`).value).toUpperCase().trim();
+            const q = parseFloat(qtyParam || document.getElementById(`${type==='add'?'add':'sub'}-q`).value);
+            const user = document.getElementById('user-name').value || "غير معرف";
+            if(!c || isNaN(q)) return (!isBulk && showToast("أدخل الكود والكمية", "error"));
 
             let info = window.find(c);
             let targetCat = info ? info.cat : (CATS.includes(c.charAt(0)) ? c.charAt(0) : 'Y&');
 
             if(info) {
+                if(type === 'sub' && info.item.base < q) return (!isBulk && showToast("الرصيد غير كافٍ", "error"));
                 info.item.base += (type === 'add' ? q : -q);
             } else {
-                if(type === 'sub') return;
-                window.inventory[targetCat].push({ code: c, base: q });
-            }
-
-            set(invRef, window.inventory);
-            push(logsRef, { date: new Date().toLocaleString('ar-EG'), type: type === 'add' ? 'إضافة' : 'صرف', code: c, qty: q, cat: targetCat, user: userName });
-            
-            if(!isBulk) {
-                showToast(`تم التحديث في قسم (${targetCat})`);
-                document.getElementById(`${type === 'add' ? 'add' : 'sub'}-c`).value = '';
-                document.getElementById(`${type === 'add' ? 'add' : 'sub'}-q`).value = '';
-            }
-        };
-
-        window.renderWeightsPage = function() {
-            const body = document.getElementById('weights-body');
-            // عرض الأوزان المخصصة فقط في الجدول للتحكم بها
-            body.innerHTML = Object.keys(window.customWeights).map(c => `
-                <tr class="border-b">
-                    <td class="p-4 text-center font-black">${c}</td>
-                    <td class="p-4 text-center font-bold text-blue-600">${window.customWeights[c]}</td>
-                    <td class="p-4 text-center"><button onclick="deleteWeight('${c}')">🗑️</button></td>
-                </tr>
-            `).join('');
-        };
-
-        window.updateWeightManually = function() {
-            const c = document.getElementById('new-weight-code').value.toUpperCase().trim();
-            const v = parseFloat(document.getElementById('new-weight-val').value);
-            if(c && !isNaN(v)) {
-                set(ref(db, `custom_weights/${c}`), v);
-                document.getElementById('new-weight-code').value = '';
-                document.getElementById('new-weight-val').value = '';
-            }
-        };
-
-        window.deleteWeight = function(c) { if(confirm("حذف الوزن؟")) set(ref(db, `custom_weights/${c}`), null); };
-
-        window.find = function(c) {
-            for(let cat in window.inventory) {
-                const i = window.inventory[cat].find(x => x.code === c);
-                if(i) return { item: i, cat };
-            }
-            return null;
-        };
-
-        function renderLogs(logs) {
-            const container = document.getElementById('activity-log');
-            if(!logs) return;
-            const sorted = Object.values(logs).reverse().slice(0, 15);
-            container.innerHTML = sorted.map(l => `
-                <div class="log-entry p-3 rounded-xl bg-white border border-slate-50 shadow-sm flex flex-col md:flex-row justify-between items-center text-xs">
-                    <div class="flex items-center gap-2">
-                        <span class="${l.type==='إضافة'?'text-emerald-600':'text-red-600'} font-black">${l.type}</span>
-                        <span class="font-black">${l.code}</span>
-                        <span class="bg-slate-100 px-2 py-0.5 rounded-lg">${l.qty} قوالب</span>
-                    </div>
-                    <div class="text-slate-400 font-bold">${l.user} - ${l.date}</div>
-                </div>
-            `).join('');
-        }
-
-        window.renderSheets = function() {
-            const tabs = document.getElementById('sheet-tabs');
-            tabs.innerHTML = CATS.map(c => `<button onclick="window.currentTab='${c}'; renderSheets()" class="px-6 py-2 rounded-xl font-black whitespace-nowrap ${window.currentTab === c ? 'bg-black text-white' : 'bg-white text-slate-400'}">${c}</button>`).join('');
-            const body = document.getElementById('sheet-body');
-            const items = window.inventory[window.currentTab] || [];
-            body.innerHTML = items.length ? items.map(i => `<tr class="border-b"><td class="p-6 text-center font-black">${i.code}</td><td class="p-6 text-center text-blue-600 font-bold">${i.base}</td><td class="p-6 text-center"><button onclick="deleteCode('${i.code}')">🗑️</button></td></tr>`).join('') : '<tr><td class="p-10 text-center italic text-slate-300">لا توجد أصناف</td></tr>';
-        };
-
-        window.deleteCode = function(c) { if(confirm(`حذف ${c}؟`)) { for(let cat in window.inventory) window.inventory[cat] = window.inventory[cat].filter(x => x.code !== c); set(invRef, window.inventory); } };
-
-        function showToast(m, t='success') {
-            const el = document.getElementById('toast');
-            el.innerText = m;
-            el.className = `fixed bottom-10 left-10 transition-all duration-500 z-[100] px-8 py-4 rounded-2xl shadow-2xl font-black text-white ${t === 'success' ? 'bg-slate-900' : 'bg-red-600'} translate-y-0 opacity-100`;
-            setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 3000);
-        }
-
-        window.showPage('home');
-    </script>
-</body>
-</html>
