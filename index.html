@@ -232,4 +232,106 @@
 
         window.renderSheets = () => {
             const tabs = document.getElementById('sheet-tabs');
-            tabs.innerHTML = CATEGORIES.map(c => `<button onclick="window.currentTab='${c}';
+            tabs.innerHTML = CATEGORIES.map(c => `<button onclick="window.currentTab='${c}'; window.renderSheets()" class="px-5 py-2 rounded-xl font-black transition-all ${window.currentTab === c ? 'bg-black text-white' : 'text-slate-400'}">${c}</button>`).join('');
+            const body = document.getElementById('sheet-body');
+            let items = window.inventory[window.currentTab] || [];
+            if(window.showLowStock) items = items.filter(i => i.base <= 0);
+
+            body.innerHTML = items.map(i => `
+                <tr class="border-b hover:bg-slate-50">
+                    <td class="p-6 text-center font-black ${i.base <= 0 ? 'text-red-600 underline' : ''}">${i.code}</td>
+                    <td class="p-6 text-center font-bold ${i.base <= 0 ? 'text-red-600 animate-pulse' : 'text-blue-600'}">${i.base}</td>
+                    <td class="p-6 text-center"><button onclick="window.deleteItem('${i.code}')" class="text-slate-300 hover:text-red-500">🗑️</button></td>
+                </tr>`).join('');
+        };
+
+        window.deleteItem = (c) => { if(confirm("حذف؟")) { for(let cat in window.inventory) window.inventory[cat] = window.inventory[cat].filter(x => x.code !== c); set(ref(db, 'inventory'), window.inventory); }};
+
+        window.importInventoryExcel = (e) => {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                data.forEach(row => {
+                    const c = row["الكود"]?.toString().toUpperCase(); const q = parseFloat(row["الرصيد"]);
+                    if(c && !isNaN(q)) {
+                        let found = false;
+                        for(let cat in window.inventory) {
+                            let idx = window.inventory[cat].findIndex(x => x.code === c);
+                            if(idx > -1) { window.inventory[cat][idx].base = q; found = true; break; }
+                        }
+                        if(!found) {
+                            let targetCat = c.startsWith('10') ? '10' : (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others');
+                            if(!window.inventory[targetCat]) window.inventory[targetCat] = [];
+                            window.inventory[targetCat].push({ code: c, base: q });
+                        }
+                    }
+                });
+                set(ref(db, 'inventory'), window.inventory).then(() => showToast("تم تحديث المخزن"));
+            };
+            reader.readAsBinaryString(e.target.files[0]);
+        };
+
+        window.exportInventoryExcel = (mode) => {
+            const wb = XLSX.utils.book_new();
+            if(mode === 'tabs') {
+                CATEGORIES.forEach(cat => {
+                    const items = (window.inventory[cat] || []).map(i => ({ "الكود": i.code, "الرصيد": i.base }));
+                    if(items.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(items), cat);
+                });
+            } else {
+                let flat = []; CATEGORIES.forEach(cat => (window.inventory[cat] || []).forEach(i => flat.push({ "التصنيف": cat, "الكود": i.code, "الرصيد": i.base })));
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(flat), "الكل");
+            }
+            XLSX.writeFile(wb, "Diamond_Inventory.xlsx");
+        };
+
+        // الرئيسية
+        window.handleBulkInput = () => {
+            const lines = document.getElementById('home-bulk').value.trim().split('\n');
+            orderItems = {};
+            lines.forEach(l => {
+                const p = l.split(/\t|\s+/); const c = p[0]?.toUpperCase(); const q = parseFloat(p[1]);
+                if(c && !isNaN(q)) orderItems[c] = (orderItems[c] || 0) + q;
+            });
+            window.updateHomeUI();
+        };
+        window.updateHomeUI = () => {
+            const res = document.getElementById('home-results'); res.innerHTML = '';
+            let tW = 0, tQ = 0;
+            Object.entries(orderItems).forEach(([c, q]) => {
+                const w = window.weights[c] || 0; tW += (q * w); tQ += q;
+                res.innerHTML += `<div class="p-4 bg-slate-50 rounded-2xl flex justify-between font-black"><span>${c} (${w}ج)</span><span class="text-blue-600">${q} ق</span></div>`;
+            });
+            document.getElementById('grand-total-weight').innerText = (tW / 1000).toFixed(3);
+            document.getElementById('total-items-count').innerText = tQ;
+            document.getElementById('dispatch-btn').classList.toggle('hidden', tQ === 0);
+        };
+        window.processFullDispatch = () => {
+            const user = document.getElementById('user-name').value || "غير معروف";
+            if(!confirm("صرف الطلبية؟")) return;
+            Object.entries(orderItems).forEach(([c, q]) => {
+                for(let cat in window.inventory) {
+                    let itm = window.inventory[cat].find(x => x.code === c); if(itm) itm.base -= q;
+                }
+                push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: 'صرف كلي', code: c, qty: q, user: user });
+            });
+            set(ref(db, 'inventory'), window.inventory).then(() => {
+                document.getElementById('home-bulk').value=''; orderItems={}; window.updateHomeUI(); showToast("تم الخصم");
+            });
+        };
+
+        onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
+        onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
+        onValue(ref(db, 'logs'), s => {
+            const data = s.val() ? Object.values(s.val()).reverse().slice(0, 10) : [];
+            document.getElementById('activity-log').innerHTML = data.map(l => `<div class="p-3 bg-slate-50 text-[11px] flex justify-between shadow-sm rounded-xl border-r-4 border-blue-500"><span class="font-black">${l.type} | ${l.code}</span><span class="text-slate-500">${l.user}</span></div>`).join('');
+        });
+
+        function showToast(m) {
+            const el = document.getElementById('toast'); el.innerText = m; el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
+            setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 3000);
+        }
+    </script>
+</body>
+</html>
