@@ -46,7 +46,8 @@
                 <div class="lg:col-span-8 space-y-6">
                     <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border">
                         <h3 class="text-2xl font-black mb-6 italic underline decoration-blue-500">🔍 تجهيز الطلبية</h3>
-                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا (مثال: 7000 أو T7000)..." class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200 shadow-inner"></textarea>
+                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا (مثال: 7000 500)..." class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200 shadow-inner"></textarea>
+                        
                         <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
                         
                         <div class="flex gap-4 items-center mb-6">
@@ -55,7 +56,7 @@
                         </div>
                         
                         <div id="bulk-actions" class="hidden grid grid-cols-2 gap-6">
-                            <button onclick="processBulkAction('sub')" class="uiverse-btn-red text-white p-5 rounded-2xl font-black text-lg shadow-xl">📤 صرف الطلبية</button>
+                            <button id="bulk-sub-btn" onclick="processBulkAction('sub')" class="uiverse-btn-red text-white p-5 rounded-2xl font-black text-lg shadow-xl">📤 صرف الطلبية</button>
                             <button onclick="processBulkAction('add')" class="uiverse-btn-green text-white p-5 rounded-2xl font-black text-lg shadow-xl">📥 إرجاع الطلبية</button>
                         </div>
                     </div>
@@ -154,11 +155,22 @@
             });
         };
 
-        function findItemCategory(code) {
+        // وظيفة البحث الذكي المحسنة (للحصول على بيانات الصنف كاملة)
+        function getSmartStock(code) {
             const cleanCode = code.toUpperCase().trim();
-            for (let cat in window.inventory) { if (window.inventory[cat].some(i => i.code === cleanCode)) return cat; }
             const numericPart = cleanCode.replace(/\D/g, "");
-            for (let cat in window.inventory) { let found = window.inventory[cat].find(i => i.code.replace(/\D/g, "") === numericPart); if (found) return cat; }
+            
+            for (let cat in window.inventory) {
+                let itm = window.inventory[cat].find(x => x.code === cleanCode || x.code.replace(/\D/g, "") === numericPart);
+                if (itm) return { ...itm, cat };
+            }
+            return null;
+        }
+
+        function findItemCategory(code) {
+            const stock = getSmartStock(code);
+            if(stock) return stock.cat;
+            const cleanCode = code.toUpperCase().trim();
             const firstChar = cleanCode.charAt(0);
             if (CATEGORIES.includes(firstChar)) return firstChar;
             if (!isNaN(firstChar) && firstChar !== "") return 'T'; 
@@ -173,12 +185,23 @@
 
         window.processBulkAction = (type) => {
             const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
+            
+            // منع الصرف لو فيه عجز
+            if(type === 'sub') {
+                let hasError = false;
+                Object.entries(orderItems).forEach(([code, qty]) => {
+                    const stock = getSmartStock(code);
+                    if(!stock || stock.base < qty) hasError = true;
+                });
+                if(hasError) return alert("لا يمكن صرف الطلبية: يوجد أصناف رصيدها غير كافٍ أو غير موجودة!");
+            }
+
             Object.entries(orderItems).forEach(([code, qty]) => {
                 const targetCat = findItemCategory(code); if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
                 let itm = window.inventory[targetCat].find(x => x.code === code.toUpperCase() || x.code.replace(/\D/g,"") === code.replace(/\D/g,""));
                 if (itm) itm.base += (type === 'add' ? qty : -qty);
                 else if (type === 'add') window.inventory[targetCat].push({ code: code.toUpperCase(), base: qty });
-                push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: code, qty: qty, user: user });
+                push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: itm ? itm.code : code, qty: qty, user: user });
             });
             set(ref(db, 'inventory'), window.inventory).then(() => {
                 document.getElementById('home-bulk').value = ''; orderItems = {}; window.updateHomeUI();
@@ -190,6 +213,9 @@
             const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
             const c = document.getElementById(type+'-c').value.toUpperCase().trim(); const q = parseFloat(document.getElementById(type+'-q').value);
             if(!c || isNaN(q)) return;
+            const stock = getSmartStock(c);
+            if(type === 'sub' && (!stock || stock.base < q)) return alert("الرصيد غير كافٍ للصرف!");
+
             const targetCat = findItemCategory(c); if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
             let itm = window.inventory[targetCat].find(x => x.code === c || x.code.replace(/\D/g,"") === c.replace(/\D/g,""));
             if (itm) itm.base += (type === 'add' ? q : -q);
@@ -206,16 +232,51 @@
             window.updateHomeUI();
         };
 
+        // التحديث الذكي لواجهة التجهيز (ربط الوزن بالرصيد بالتنبيهات)
         window.updateHomeUI = () => {
-            const res = document.getElementById('home-results'); res.innerHTML = ''; let tW = 0, tQ = 0;
+            const res = document.getElementById('home-results'); res.innerHTML = ''; 
+            let tW = 0, tQ = 0, hasInventoryError = false;
+
             Object.entries(orderItems).forEach(([c, q]) => {
-                let w = window.weights[c]; if(w===undefined) { const n = c.replace(/\D/g, ""); const k = Object.keys(window.weights).find(x=>x.replace(/\D/g,"")===n); w = k ? window.weights[k] : 0; }
+                const stock = getSmartStock(c);
+                const currentStock = stock ? stock.base : 0;
+                const isShortage = currentStock < q;
+                if(isShortage || !stock) hasInventoryError = true;
+
+                // حساب الوزن
+                let w = window.weights[c]; 
+                if(w===undefined) { 
+                    const n = c.replace(/\D/g, ""); 
+                    const k = Object.keys(window.weights).find(x=>x.replace(/\D/g,"")===n); 
+                    w = k ? window.weights[k] : 0; 
+                }
                 tW += (q*w); tQ += q;
-                res.innerHTML += `<div class="p-4 bg-white rounded-2xl flex justify-between font-black border ${w>0?'border-slate-100 shadow-sm':'border-red-200 bg-red-50'}"><span>${c} (${w}ج)</span><span class="text-blue-600">${q} ق</span></div>`;
+
+                // تصميم الكارد التنبيهي
+                const bgColor = !stock ? 'bg-amber-50 border-amber-200' : (isShortage ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 shadow-sm');
+                const statusMsg = !stock ? '<span class="text-[9px] text-amber-600 block">غير مسجل بالمخزن</span>' : (isShortage ? `<span class="text-[9px] text-red-600 block">عجز: ${q - currentStock} قطعة</span>` : '<span class="text-[9px] text-emerald-600 block">متوفر ✅</span>');
+
+                res.innerHTML += `
+                    <div class="p-4 rounded-2xl border flex justify-between items-center ${bgColor}">
+                        <div>
+                            <span class="font-black block text-sm">${stock ? stock.code : c}</span>
+                            <span class="text-[10px] text-slate-400 font-bold">وزن: ${w}ج | رصيد: ${currentStock}</span>
+                            ${statusMsg}
+                        </div>
+                        <div class="text-left">
+                            <span class="text-blue-600 font-black text-lg block">${q}</span>
+                            <span class="text-[9px] font-bold text-slate-400 uppercase">الطلب</span>
+                        </div>
+                    </div>`;
             });
+
             document.getElementById('grand-total-weight').innerText = (tW/1000).toFixed(3);
             document.getElementById('total-items-count').innerText = tQ;
             document.getElementById('bulk-actions').classList.toggle('hidden', tQ===0);
+            
+            // تعطيل زر الصرف لو فيه أخطاء
+            document.getElementById('bulk-sub-btn').style.opacity = hasInventoryError ? "0.5" : "1";
+            document.getElementById('bulk-sub-btn').style.cursor = hasInventoryError ? "not-allowed" : "pointer";
         };
 
         window.saveWeight = () => {
@@ -227,19 +288,7 @@
         window.exportWeightsExcel = () => {
             if (Object.keys(window.weights).length === 0) return alert("لا توجد أوزان للتصدير");
             const data = Object.entries(window.weights).map(([c, v]) => ({ "الكود": c, "الوزن (جرام)": v }));
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "الأوزان");
-            XLSX.writeFile(wb, "Diamond_Plast_Weights.xlsx");
-        };
-
-        window.importWeightsExcel = (e) => {
-            const reader = new FileReader(); reader.onload = (evt) => {
-                const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                data.forEach(row => { const c = row["الكود"]?.toString().toUpperCase(); const v = parseFloat(row["الوزن (جرام)"] || 0); if(c && v) window.weights[c] = v; });
-                set(ref(db, 'custom_weights'), window.weights).then(() => showSmartToast("تم استيراد الأوزان بنجاح"));
-            }; reader.readAsBinaryString(e.target.files[0]);
+            XLSX.writeFile(XLSX.utils.book_append_sheet(XLSX.utils.book_new(), XLSX.utils.json_to_sheet(data), "الأوزان"), "Weights.xlsx");
         };
 
         window.exportInventoryExcel = (mode) => {
@@ -261,7 +310,7 @@
             }; reader.readAsBinaryString(e.target.files[0]);
         };
 
-        onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
+        onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); window.updateHomeUI(); });
         onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
         onValue(ref(db, 'logs'), s => {
             const data = s.val() ? Object.values(s.val()).reverse().slice(0, 15) : [];
