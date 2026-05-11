@@ -11,8 +11,31 @@
         body { font-family: 'Cairo', sans-serif; background: #f4f7f6; color: #334155; margin: 0; }
         .nav-btn.active { background: #1e293b; color: white; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
-        .action-btn { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-        .action-btn:active { transform: scale(0.95); }
+        
+        /* أنيميشن الأزرار المستوحى من Uiverse */
+        .uiverse-btn-red {
+            transition: all 0.2s;
+            background-color: #dc2626; /* red-600 */
+            border-bottom: 4px solid #991b1b; /* red-800 */
+        }
+        .uiverse-btn-red:hover { brightness: 110%; transform: translateY(-1px); border-bottom-width: 6px; }
+        .uiverse-btn-red:active { border-bottom-width: 2px; transform: translateY(2px); brightness: 90%; }
+
+        .uiverse-btn-green {
+            transition: all 0.2s;
+            background-color: #059669; /* emerald-600 */
+            border-bottom: 4px solid #064e3b; /* emerald-900 */
+        }
+        .uiverse-btn-green:hover { brightness: 110%; transform: translateY(-1px); border-bottom-width: 6px; }
+        .uiverse-btn-green:active { border-bottom-width: 2px; transform: translateY(2px); brightness: 90%; }
+
+        .uiverse-btn-slate {
+            transition: all 0.2s;
+            background-color: #f8fafc; /* slate-50 */
+            border-bottom: 4px solid #cbd5e1; /* slate-300 */
+            color: #1e293b;
+        }
+        .uiverse-btn-slate:active { border-bottom-width: 2px; transform: translateY(2px); }
     </style>
 </head>
 <body class="min-h-screen pb-20">
@@ -38,16 +61,17 @@
                 <div class="lg:col-span-8 space-y-6">
                     <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border">
                         <h3 class="text-2xl font-black mb-6 italic underline decoration-blue-500">🔍 تجهيز الطلبية</h3>
-                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا..." class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200"></textarea>
+                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا..." class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200 shadow-inner"></textarea>
                         <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
+                        
                         <div class="flex gap-4 items-center mb-6">
                             <div class="bg-blue-50 p-4 rounded-2xl flex-1 text-center border"><span class="block text-[10px] font-black text-blue-400">العدد الكلي</span><span id="total-items-count" class="text-xl font-black">0</span></div>
-                            <div class="bg-emerald-50 p-4 rounded-2xl flex-1 text-center border"><span class="block text-[10px] font-black text-emerald-400">إجمالي الوزن (كجم)</span><span id="grand-total-weight" class="text-xl font-black">0.000</span></div>
+                            <div class="bg-emerald-50 p-4 rounded-2xl flex-1 text-center border"><span class="block text-[10px] font-black text-emerald-400">الوزن (كجم)</span><span id="grand-total-weight" class="text-xl font-black">0.000</span></div>
                         </div>
                         
-                        <div id="bulk-actions" class="hidden grid grid-cols-2 gap-4">
-                            <button onclick="processBulkAction('sub')" class="action-btn bg-red-600 text-white p-5 rounded-2xl font-black text-lg shadow-lg hover:bg-red-700">📤 صرف الطلبية</button>
-                            <button onclick="processBulkAction('add')" class="action-btn bg-emerald-600 text-white p-5 rounded-2xl font-black text-lg shadow-lg hover:bg-emerald-700">📥 إرجاع الطلبية</button>
+                        <div id="bulk-actions" class="hidden grid grid-cols-2 gap-6">
+                            <button onclick="processBulkAction('sub')" class="uiverse-btn-red text-white p-5 rounded-2xl font-black text-lg shadow-xl">📤 صرف الطلبية</button>
+                            <button onclick="processBulkAction('add')" class="uiverse-btn-green text-white p-5 rounded-2xl font-black text-lg shadow-xl">📥 إرجاع الطلبية</button>
                         </div>
                     </div>
 
@@ -58,18 +82,22 @@
                 </div>
 
                 <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white p-6 rounded-[2rem] shadow-md border"><input type="text" id="user-name" placeholder="اسم المسؤول" class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none ring-2 ring-red-100"></div>
+                    <div class="bg-white p-6 rounded-[2rem] shadow-md border">
+                        <input type="text" id="user-name" placeholder="اسم المسؤول" class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none ring-2 ring-red-100">
+                    </div>
+                    
                     <div class="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-xl">
-                        <h3 class="font-black text-xl mb-4 italic">📥 إضافة منفردة</h3>
+                        <h3 class="font-black text-xl mb-4 italic italic">📥 إضافة منفردة</h3>
                         <input type="text" id="add-c" placeholder="كود الصنف" class="w-full p-4 rounded-2xl bg-white/10 border-none mb-3 font-bold outline-none uppercase">
                         <input type="number" id="add-q" placeholder="الكمية" class="w-full p-4 rounded-2xl bg-white/10 border-none mb-3 font-bold outline-none">
-                        <button onclick="invAction('add')" class="w-full bg-white text-black p-4 rounded-2xl font-black hover:bg-slate-100 action-btn">تحديث الرصيد</button>
+                        <button onclick="invAction('add')" class="uiverse-btn-slate w-full p-4 rounded-2xl font-black">تحديث الرصيد</button>
                     </div>
+
                     <div class="bg-red-600 text-white rounded-[2.5rem] p-8 shadow-xl">
                         <h3 class="font-black text-xl mb-4 italic">📤 صرف منفرد</h3>
                         <input type="text" id="sub-c" placeholder="كود الصنف" class="w-full p-4 rounded-2xl bg-white/10 border-none mb-3 font-bold outline-none uppercase">
                         <input type="number" id="sub-q" placeholder="الكمية" class="w-full p-4 rounded-2xl bg-white/10 border-none mb-3 font-bold outline-none">
-                        <button onclick="invAction('sub')" class="w-full bg-slate-900 text-white p-4 rounded-2xl font-black hover:bg-black action-btn">خصم الرصيد</button>
+                        <button onclick="invAction('sub')" class="uiverse-btn-slate w-full p-4 rounded-2xl font-black text-slate-900">خصم الرصيد</button>
                     </div>
                 </div>
             </div>
@@ -105,7 +133,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-slate-50 rounded-3xl mb-8">
                     <input type="text" id="w-code" placeholder="كود القالب" class="p-4 rounded-2xl border-none font-bold outline-none uppercase shadow-sm">
                     <input type="number" id="w-val" placeholder="الوزن (جرام)" class="p-4 rounded-2xl border-none font-bold outline-none shadow-sm">
-                    <button onclick="saveWeight()" class="md:col-span-2 bg-black text-white p-4 rounded-2xl font-black action-btn">حفظ الوزن</button>
+                    <button onclick="saveWeight()" class="uiverse-btn-slate md:col-span-2 p-4 rounded-2xl font-black">حفظ الوزن</button>
                 </div>
                 <div id="weights-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </div>
@@ -141,135 +169,68 @@
             });
         };
 
-        // --- التنبيهات الذكية (معدلة) ---
         function showSmartToast(action, code, qty, category) {
             const el = document.getElementById('toast');
-            const msg = action === 'add' 
-                ? `📥 تم إضافة (${qty}) لـ (${code}) في شيت [${category}]`
-                : `📤 تم صرف (${qty}) من (${code}) من شيت [${category}]`;
+            const msg = action === 'add' ? `📥 تم إضافة (${qty}) لـ (${code}) في [${category}]` : `📤 تم صرف (${qty}) من (${code}) من [${category}]`;
             el.innerText = msg;
             el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
             setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 4000);
         }
 
-        // --- العمليات الجماعية الذكية (إضافة وصرف) ---
         window.processBulkAction = (type) => {
             const user = document.getElementById('user-name').value.trim();
             if(!user) return alert("اكتب اسم المسؤول أولاً");
-            
             Object.entries(orderItems).forEach(([code, qty]) => {
                 let found = false;
-                let finalCat = "";
                 for(let cat in window.inventory) {
                     let itm = window.inventory[cat].find(x => x.code === code);
-                    if(itm) {
-                        itm.base += (type === 'add' ? qty : -qty);
-                        found = true; finalCat = cat; break;
-                    }
+                    if(itm) { itm.base += (type === 'add' ? qty : -qty); found = true; break; }
                 }
                 if(!found && type === 'add') {
-                    finalCat = (CATEGORIES.includes(code.charAt(0)) ? code.charAt(0) : 'Others');
+                    let finalCat = (CATEGORIES.includes(code.charAt(0)) ? code.charAt(0) : 'Others');
                     if(!window.inventory[finalCat]) window.inventory[finalCat] = [];
                     window.inventory[finalCat].push({ code: code, base: qty });
                 }
                 push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: code, qty: qty, user: user });
             });
-
             set(ref(db, 'inventory'), window.inventory).then(() => {
-                const actionMsg = type === 'add' ? "تم إرجاع الطلبية بالكامل للمخزن ✅" : "تم صرف الطلبية بالكامل من المخزن 🚀";
-                document.getElementById('home-bulk').value = '';
-                orderItems = {};
-                window.updateHomeUI();
+                document.getElementById('home-bulk').value = ''; orderItems = {}; window.updateHomeUI();
                 const el = document.getElementById('toast');
-                el.innerText = actionMsg;
+                el.innerText = type === 'add' ? "تم إرجاع الطلبية بالكامل للمخزن ✅" : "تم صرف الطلبية بالكامل من المخزن 🚀";
                 el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
                 setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 4000);
             });
         };
 
-        // --- العمليات المنفردة ---
         window.invAction = (type) => {
-            const user = document.getElementById('user-name').value.trim();
-            if(!user) return alert("اكتب اسم المسؤول");
-            const c = document.getElementById(type+'-c').value.toUpperCase().trim();
-            const q = parseFloat(document.getElementById(type+'-q').value);
+            const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
+            const c = document.getElementById(type+'-c').value.toUpperCase().trim(); const q = parseFloat(document.getElementById(type+'-q').value);
             if(!c || isNaN(q)) return;
-
             let finalCat = (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others');
             let found = false;
             for(let cat in window.inventory) {
                 let idx = window.inventory[cat].findIndex(x => x.code === c);
-                if(idx > -1) { 
-                    window.inventory[cat][idx].base += (type === 'add' ? q : -q); 
-                    found = true; finalCat = cat; break; 
-                }
+                if(idx > -1) { window.inventory[cat][idx].base += (type === 'add' ? q : -q); found = true; finalCat = cat; break; }
             }
-            if(!found && type === 'add') {
-                if(!window.inventory[finalCat]) window.inventory[finalCat] = [];
-                window.inventory[finalCat].push({ code: c, base: q });
-            }
+            if(!found && type === 'add') { if(!window.inventory[finalCat]) window.inventory[finalCat] = []; window.inventory[finalCat].push({ code: c, base: q }); }
             set(ref(db, 'inventory'), window.inventory);
             push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إضافة':'صرف', code: c, qty: q, user: user });
             showSmartToast(type, c, q, finalCat);
             document.getElementById(type+'-c').value=''; document.getElementById(type+'-q').value='';
         };
 
-        // --- الحفاظ على Excel (بدون أي تعديل) ---
-        window.exportInventoryExcel = (mode) => {
-            const wb = XLSX.utils.book_new();
-            if(mode === 'tabs') {
-                CATEGORIES.forEach(cat => {
-                    const data = (window.inventory[cat] || []).map(i => ({ "الكود": i.code, "الرصيد": i.base }));
-                    if(data.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(data), cat);
-                });
-            } else {
-                let flat = []; CATEGORIES.forEach(cat => (window.inventory[cat] || []).forEach(i => flat.push({ "الفئة": cat, "الكود": i.code, "الرصيد": i.base })));
-                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(flat), "المخزون");
-            }
-            XLSX.writeFile(wb, "Diamond_Inventory.xlsx");
-        };
-
-        window.importInventoryExcel = (e) => {
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                data.forEach(row => {
-                    const c = row["الكود"]?.toString().toUpperCase(); const q = parseFloat(row["الرصيد"] || 0);
-                    if(c) {
-                        let f = false; for(let cat in window.inventory) { let idx = window.inventory[cat].findIndex(x=>x.code===c); if(idx>-1){window.inventory[cat][idx].base=q; f=true; break;}}
-                        if(!f) { let tc = (CATEGORIES.includes(c.charAt(0))?c.charAt(0):'Others'); if(!window.inventory[tc]) window.inventory[tc]=[]; window.inventory[tc].push({code:c, base:q});}
-                    }
-                });
-                set(ref(db, 'inventory'), window.inventory).then(() => {
-                    const el = document.getElementById('toast'); el.innerText = "📂 تم تحديث المستودع من الإكسيل";
-                    el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
-                    setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 3000);
-                });
-            };
-            reader.readAsBinaryString(e.target.files[0]);
-        };
-
-        // --- باقي الوظائف الأساسية ---
         window.handleBulkInput = () => {
-            const lines = document.getElementById('home-bulk').value.trim().split('\n');
-            orderItems = {};
-            lines.forEach(l => {
-                const p = l.split(/\t|\s+/);
-                let c = p[0]?.toUpperCase() || ""; let q = parseFloat(p[1]);
-                if(c && !isNaN(q)) orderItems[c] = (orderItems[c] || 0) + q;
-            });
+            const lines = document.getElementById('home-bulk').value.trim().split('\n'); orderItems = {};
+            lines.forEach(l => { const p = l.split(/\t|\s+/); let c = p[0]?.toUpperCase() || ""; let q = parseFloat(p[1]); if(c && !isNaN(q)) orderItems[c] = (orderItems[c] || 0) + q; });
             window.updateHomeUI();
         };
 
         window.updateHomeUI = () => {
-            const res = document.getElementById('home-results'); res.innerHTML = '';
-            let tW = 0, tQ = 0;
+            const res = document.getElementById('home-results'); res.innerHTML = ''; let tW = 0, tQ = 0;
             Object.entries(orderItems).forEach(([c, q]) => {
-                let w = window.weights[c];
-                if(w===undefined) { const n = c.replace(/\D/g, ""); const k = Object.keys(window.weights).find(x=>x.replace(/\D/g,"")===n); w = k ? window.weights[k] : 0; }
+                let w = window.weights[c]; if(w===undefined) { const n = c.replace(/\D/g, ""); const k = Object.keys(window.weights).find(x=>x.replace(/\D/g,"")===n); w = k ? window.weights[k] : 0; }
                 tW += (q*w); tQ += q;
-                res.innerHTML += `<div class="p-4 bg-slate-50 rounded-2xl flex justify-between font-black border ${w>0?'':'border-red-200 bg-red-50'}"><span>${c} (${w}ج)</span><span class="text-blue-600">${q} ق</span></div>`;
+                res.innerHTML += `<div class="p-4 bg-white rounded-2xl flex justify-between font-black border ${w>0?'border-slate-100 shadow-sm':'border-red-200 bg-red-50'}"><span>${c} (${w}ج)</span><span class="text-blue-600">${q} ق</span></div>`;
             });
             document.getElementById('grand-total-weight').innerText = (tW/1000).toFixed(3);
             document.getElementById('total-items-count').innerText = tQ;
@@ -277,21 +238,28 @@
         };
 
         window.saveWeight = () => {
-            const c = document.getElementById('w-code').value.trim().toUpperCase();
-            const v = parseFloat(document.getElementById('w-val').value);
-            if(!c || isNaN(v)) return;
-            window.weights[c] = v;
-            set(ref(db, 'custom_weights'), window.weights).then(() => { 
-                document.getElementById('w-code').value=''; document.getElementById('w-val').value=''; 
-            });
+            const c = document.getElementById('w-code').value.trim().toUpperCase(); const v = parseFloat(document.getElementById('w-val').value);
+            if(!c || isNaN(v)) return; window.weights[c] = v;
+            set(ref(db, 'custom_weights'), window.weights).then(() => { document.getElementById('w-code').value=''; document.getElementById('w-val').value=''; });
         };
 
-        window.exportWeightsExcel = () => {
-            const data = Object.entries(window.weights).map(([c, v]) => ({ "الكود": c, "الوزن (جرام)": v }));
-            const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الأوزان"); XLSX.writeFile(wb, "Diamond_Weights.xlsx");
+        window.exportInventoryExcel = (mode) => {
+            const wb = XLSX.utils.book_new();
+            if(mode === 'tabs') { CATEGORIES.forEach(cat => { const d = (window.inventory[cat] || []).map(i => ({ "الكود": i.code, "الرصيد": i.base })); if(d.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d), cat); }); }
+            else { let f = []; CATEGORIES.forEach(cat => (window.inventory[cat] || []).forEach(i => f.push({ "الفئة": cat, "الكود": i.code, "الرصيد": i.base }))); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(f), "المخزون"); }
+            XLSX.writeFile(wb, "Diamond_Inventory.xlsx");
         };
 
+        window.importInventoryExcel = (e) => {
+            const reader = new FileReader(); reader.onload = (evt) => {
+                const data = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, { type: 'binary' }).Sheets[XLSX.read(evt.target.result, { type: 'binary' }).SheetNames[0]]);
+                data.forEach(row => { const c = row["الكود"]?.toString().toUpperCase(); const q = parseFloat(row["الرصيد"] || 0); if(c) { let f = false; for(let cat in window.inventory) { let idx = window.inventory[cat].findIndex(x=>x.code===c); if(idx>-1){window.inventory[cat][idx].base=q; f=true; break;}} if(!f) { let tc = (CATEGORIES.includes(c.charAt(0))?c.charAt(0):'Others'); if(!window.inventory[tc]) window.inventory[tc]=[]; window.inventory[tc].push({code:c, base:q});} } });
+                set(ref(db, 'inventory'), window.inventory);
+            }; reader.readAsBinaryString(e.target.files[0]);
+        };
+
+        window.exportWeightsExcel = () => { const data = Object.entries(window.weights).map(([c, v]) => ({ "الكود": c, "الوزن (جرام)": v })); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الأوزان"); XLSX.writeFile(wb, "Diamond_Weights.xlsx"); };
+        
         onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
         onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
         onValue(ref(db, 'logs'), s => {
@@ -301,8 +269,7 @@
 
         window.renderSheets = () => {
             document.getElementById('sheet-tabs').innerHTML = CATEGORIES.map(c => `<button onclick="window.currentTab='${c}'; window.renderSheets()" class="px-4 py-2 rounded-xl font-black text-xs ${window.currentTab === c ? 'bg-black text-white' : 'text-slate-400'}">${c}</button>`).join('');
-            let items = window.inventory[window.currentTab] || [];
-            if(window.showLowStock) items = items.filter(i => i.base <= 1);
+            let items = window.inventory[window.currentTab] || []; if(window.showLowStock) items = items.filter(i => i.base <= 1);
             document.getElementById('sheet-body').innerHTML = items.map(i => `<tr class="border-b"><td class="p-6 text-center font-black ${i.base<=1?'text-red-600':''}">${i.code}</td><td class="p-6 text-center font-bold text-blue-600">${i.base}</td><td class="p-6 text-center"><button onclick="deleteItem('${i.code}')" class="opacity-30 hover:opacity-100">🗑️</button></td></tr>`).join('');
         };
 
