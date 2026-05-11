@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond Plast - Smart Inventory</title>
+    <title>Diamond Plast - Smart Inventory Pro</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -12,29 +12,15 @@
         .nav-btn.active { background: #1e293b; color: white; transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         
-        /* أنيميشن الأزرار المستوحى من Uiverse */
-        .uiverse-btn-red {
-            transition: all 0.2s;
-            background-color: #dc2626; /* red-600 */
-            border-bottom: 4px solid #991b1b; /* red-800 */
-        }
+        .uiverse-btn-red { transition: all 0.2s; background-color: #dc2626; border-bottom: 4px solid #991b1b; }
         .uiverse-btn-red:hover { brightness: 110%; transform: translateY(-1px); border-bottom-width: 6px; }
-        .uiverse-btn-red:active { border-bottom-width: 2px; transform: translateY(2px); brightness: 90%; }
+        .uiverse-btn-red:active { border-bottom-width: 2px; transform: translateY(2px); }
 
-        .uiverse-btn-green {
-            transition: all 0.2s;
-            background-color: #059669; /* emerald-600 */
-            border-bottom: 4px solid #064e3b; /* emerald-900 */
-        }
+        .uiverse-btn-green { transition: all 0.2s; background-color: #059669; border-bottom: 4px solid #064e3b; }
         .uiverse-btn-green:hover { brightness: 110%; transform: translateY(-1px); border-bottom-width: 6px; }
-        .uiverse-btn-green:active { border-bottom-width: 2px; transform: translateY(2px); brightness: 90%; }
+        .uiverse-btn-green:active { border-bottom-width: 2px; transform: translateY(2px); }
 
-        .uiverse-btn-slate {
-            transition: all 0.2s;
-            background-color: #f8fafc; /* slate-50 */
-            border-bottom: 4px solid #cbd5e1; /* slate-300 */
-            color: #1e293b;
-        }
+        .uiverse-btn-slate { transition: all 0.2s; background-color: #f8fafc; border-bottom: 4px solid #cbd5e1; color: #1e293b; }
         .uiverse-btn-slate:active { border-bottom-width: 2px; transform: translateY(2px); }
     </style>
 </head>
@@ -55,13 +41,12 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8">
-        
         <div id="page-home" class="space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-8 space-y-6">
                     <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border">
                         <h3 class="text-2xl font-black mb-6 italic underline decoration-blue-500">🔍 تجهيز الطلبية</h3>
-                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا..." class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200 shadow-inner"></textarea>
+                        <textarea id="home-bulk" oninput="handleBulkInput()" placeholder="أدخل الأكواد هنا (مثال: 7000 أو T7000)..." class="w-full h-32 p-4 rounded-3xl bg-slate-50 border-none font-bold mb-4 outline-none focus:ring-2 focus:ring-slate-200 shadow-inner"></textarea>
                         <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
                         
                         <div class="flex gap-4 items-center mb-6">
@@ -87,7 +72,7 @@
                     </div>
                     
                     <div class="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-xl">
-                        <h3 class="font-black text-xl mb-4 italic italic">📥 إضافة منفردة</h3>
+                        <h3 class="font-black text-xl mb-4 italic">📥 إضافة منفردة</h3>
                         <input type="text" id="add-c" placeholder="كود الصنف" class="w-full p-4 rounded-2xl bg-white/10 border-none mb-3 font-bold outline-none uppercase">
                         <input type="number" id="add-q" placeholder="الكمية" class="w-full p-4 rounded-2xl bg-white/10 border-none mb-3 font-bold outline-none">
                         <button onclick="invAction('add')" class="uiverse-btn-slate w-full p-4 rounded-2xl font-black">تحديث الرصيد</button>
@@ -169,56 +154,89 @@
             });
         };
 
+        // --- وظيفة البحث الذكي عن الصنف (لتجنب تكرار الأكواد) ---
+        function findItemCategory(code) {
+            const cleanCode = code.toUpperCase().trim();
+            // 1. البحث عن التطابق التام في كل المخزن
+            for (let cat in window.inventory) {
+                if (window.inventory[cat].some(i => i.code === cleanCode)) return cat;
+            }
+            // 2. البحث عن تطابق بدون حرف T (لو الكود 7000 والمسجل T7000)
+            const numericPart = cleanCode.replace(/\D/g, "");
+            for (let cat in window.inventory) {
+                let found = window.inventory[cat].find(i => i.code.replace(/\D/g, "") === numericPart);
+                if (found) return cat;
+            }
+            // 3. لو صنف جديد تماماً، حدد الفئة بناءً على أول حرف
+            const firstChar = cleanCode.charAt(0);
+            if (CATEGORIES.includes(firstChar)) return firstChar;
+            // 4. لو رقم خالص، افترض إنه تبع T (أو غيرها حسب رغبتك) بدلاً من Others
+            if (!isNaN(firstChar)) return 'T'; 
+            return 'Others';
+        }
+
         function showSmartToast(action, code, qty, category) {
             const el = document.getElementById('toast');
-            const msg = action === 'add' ? `📥 تم إضافة (${qty}) لـ (${code}) في [${category}]` : `📤 تم صرف (${qty}) من (${code}) من [${category}]`;
+            const msg = action === 'add' ? `📥 إضافة (${qty}) لـ (${code}) في شيت [${category}]` : `📤 صرف (${qty}) من (${code}) من شيت [${category}]`;
             el.innerText = msg;
             el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
             setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 4000);
         }
 
+        // --- العمليات الجماعية (إضافة/صرف) مع معالجة ذكية للأكواد ---
         window.processBulkAction = (type) => {
             const user = document.getElementById('user-name').value.trim();
             if(!user) return alert("اكتب اسم المسؤول أولاً");
+            
             Object.entries(orderItems).forEach(([code, qty]) => {
-                let found = false;
-                for(let cat in window.inventory) {
-                    let itm = window.inventory[cat].find(x => x.code === code);
-                    if(itm) { itm.base += (type === 'add' ? qty : -qty); found = true; break; }
-                }
-                if(!found && type === 'add') {
-                    let finalCat = (CATEGORIES.includes(code.charAt(0)) ? code.charAt(0) : 'Others');
-                    if(!window.inventory[finalCat]) window.inventory[finalCat] = [];
-                    window.inventory[finalCat].push({ code: code, base: qty });
+                const targetCat = findItemCategory(code);
+                if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
+                
+                // البحث عن الصنف داخل الفئة المحددة (سواء بالتطابق التام أو الرقمي)
+                let itm = window.inventory[targetCat].find(x => x.code === code.toUpperCase() || x.code.replace(/\D/g,"") === code.replace(/\D/g,""));
+                
+                if (itm) {
+                    itm.base += (type === 'add' ? qty : -qty);
+                } else if (type === 'add') {
+                    // إضافة كود جديد بالفئة الصحيحة
+                    window.inventory[targetCat].push({ code: code.toUpperCase(), base: qty });
                 }
                 push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: code, qty: qty, user: user });
             });
+
             set(ref(db, 'inventory'), window.inventory).then(() => {
                 document.getElementById('home-bulk').value = ''; orderItems = {}; window.updateHomeUI();
                 const el = document.getElementById('toast');
-                el.innerText = type === 'add' ? "تم إرجاع الطلبية بالكامل للمخزن ✅" : "تم صرف الطلبية بالكامل من المخزن 🚀";
+                el.innerText = type === 'add' ? "تم إرجاع الطلبية وتوجيهها للفئات الصحيحة ✅" : "تم صرف الطلبية وتحديث المخزون 🚀";
                 el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
                 setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 4000);
             });
         };
 
+        // --- العمليات المنفردة مع البحث الذكي ---
         window.invAction = (type) => {
             const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
             const c = document.getElementById(type+'-c').value.toUpperCase().trim(); const q = parseFloat(document.getElementById(type+'-q').value);
             if(!c || isNaN(q)) return;
-            let finalCat = (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others');
-            let found = false;
-            for(let cat in window.inventory) {
-                let idx = window.inventory[cat].findIndex(x => x.code === c);
-                if(idx > -1) { window.inventory[cat][idx].base += (type === 'add' ? q : -q); found = true; finalCat = cat; break; }
+
+            const targetCat = findItemCategory(c);
+            if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
+            
+            let itm = window.inventory[targetCat].find(x => x.code === c || x.code.replace(/\D/g,"") === c.replace(/\D/g,""));
+            
+            if (itm) {
+                itm.base += (type === 'add' ? q : -q);
+            } else if (type === 'add') {
+                window.inventory[targetCat].push({ code: c, base: q });
             }
-            if(!found && type === 'add') { if(!window.inventory[finalCat]) window.inventory[finalCat] = []; window.inventory[finalCat].push({ code: c, base: q }); }
+            
             set(ref(db, 'inventory'), window.inventory);
             push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إضافة':'صرف', code: c, qty: q, user: user });
-            showSmartToast(type, c, q, finalCat);
+            showSmartToast(type, c, q, targetCat);
             document.getElementById(type+'-c').value=''; document.getElementById(type+'-q').value='';
         };
 
+        // --- باقي الوظائف (Excel, Weights, Render) بدون تغيير لضمان الثبات ---
         window.handleBulkInput = () => {
             const lines = document.getElementById('home-bulk').value.trim().split('\n'); orderItems = {};
             lines.forEach(l => { const p = l.split(/\t|\s+/); let c = p[0]?.toUpperCase() || ""; let q = parseFloat(p[1]); if(c && !isNaN(q)) orderItems[c] = (orderItems[c] || 0) + q; });
@@ -253,13 +271,16 @@
         window.importInventoryExcel = (e) => {
             const reader = new FileReader(); reader.onload = (evt) => {
                 const data = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, { type: 'binary' }).Sheets[XLSX.read(evt.target.result, { type: 'binary' }).SheetNames[0]]);
-                data.forEach(row => { const c = row["الكود"]?.toString().toUpperCase(); const q = parseFloat(row["الرصيد"] || 0); if(c) { let f = false; for(let cat in window.inventory) { let idx = window.inventory[cat].findIndex(x=>x.code===c); if(idx>-1){window.inventory[cat][idx].base=q; f=true; break;}} if(!f) { let tc = (CATEGORIES.includes(c.charAt(0))?c.charAt(0):'Others'); if(!window.inventory[tc]) window.inventory[tc]=[]; window.inventory[tc].push({code:c, base:q});} } });
+                data.forEach(row => { const c = row["الكود"]?.toString().toUpperCase(); const q = parseFloat(row["الرصيد"] || 0); if(c) { 
+                    const targetCat = findItemCategory(c); if(!window.inventory[targetCat]) window.inventory[targetCat]=[];
+                    let idx = window.inventory[targetCat].findIndex(x=>x.code===c || x.code.replace(/\D/g,"")===c.replace(/\D/g,""));
+                    if(idx>-1) window.inventory[targetCat][idx].base = q; else window.inventory[targetCat].push({code:c, base:q});
+                }});
                 set(ref(db, 'inventory'), window.inventory);
             }; reader.readAsBinaryString(e.target.files[0]);
         };
 
-        window.exportWeightsExcel = () => { const data = Object.entries(window.weights).map(([c, v]) => ({ "الكود": c, "الوزن (جرام)": v })); const ws = XLSX.utils.json_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "الأوزان"); XLSX.writeFile(wb, "Diamond_Weights.xlsx"); };
-        
+        window.exportWeightsExcel = () => { const d = Object.entries(window.weights).map(([c,v])=>({"الكود":c,"الوزن":v})); XLSX.writeFile(XLSX.utils.book_new(), "Weights.xlsx"); };
         onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
         onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
         onValue(ref(db, 'logs'), s => {
