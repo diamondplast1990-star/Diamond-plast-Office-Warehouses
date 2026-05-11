@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Diamond Plast - نظام الإدارة المتكامل</title>
+    <title>Diamond Plast - Pro System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
@@ -31,10 +31,11 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8">
+        
         <div id="page-home" class="space-y-6">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 <div class="lg:col-span-8 space-y-6">
-                    <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
+                    <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border">
                         <div class="flex flex-wrap justify-between items-center mb-6 gap-4">
                             <h3 class="text-2xl font-black italic underline decoration-blue-500">🔍 تجهيز الطلبية</h3>
                             <div class="flex gap-2">
@@ -52,13 +53,16 @@
                         <div id="home-results" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6"></div>
                         <button onclick="processFullDispatch()" id="dispatch-btn" class="hidden w-full bg-red-600 text-white p-5 rounded-[1.5rem] font-black text-lg hover:bg-red-700 shadow-xl transition-all">صرف الطلبية بالكامل</button>
                     </div>
-                    <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border border-slate-100">
-                        <h3 class="text-xl font-black mb-4">📜 سجل أحداث العمليات</h3>
-                        <div id="activity-log" class="space-y-3 max-h-[300px] overflow-y-auto no-scrollbar text-xs"></div>
+
+                    <div class="bg-white rounded-[2.5rem] p-8 shadow-xl border">
+                        <h3 class="text-xl font-black mb-4">📜 سجل أحداث العمليات (آخر 15)</h3>
+                        <div id="activity-log" class="space-y-3 max-h-[400px] overflow-y-auto no-scrollbar">
+                            </div>
                     </div>
                 </div>
+
                 <div class="lg:col-span-4 space-y-6">
-                    <div class="bg-white p-6 rounded-[2rem] shadow-md border border-slate-100">
+                    <div class="bg-white p-6 rounded-[2rem] shadow-md border">
                         <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">اسم المسؤول</label>
                         <input type="text" id="user-name" placeholder="ادخل اسمك هنا" class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none ring-2 ring-red-100">
                     </div>
@@ -88,19 +92,17 @@
                 <div class="flex gap-2">
                     <button id="filter-low-btn" onclick="toggleLowStockFilter()" class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs border border-amber-200">النواقص (1-0)</button>
                     <label class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs cursor-pointer">استيراد <input type="file" class="hidden" accept=".xlsx, .xls" onchange="importInventoryExcel(event)"></label>
-                    <div class="relative group">
-                        <button class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs">تصدير ⬇️</button>
-                        <div class="absolute left-0 mt-2 w-48 bg-white border rounded-xl shadow-xl hidden group-hover:block z-[60]">
-                            <button onclick="exportInventoryExcel('tabs')" class="w-full text-right px-4 py-3 text-xs font-bold hover:bg-slate-50 border-b">تصدير (شيتات منفصلة)</button>
-                            <button onclick="exportInventoryExcel('flat')" class="w-full text-right px-4 py-3 text-xs font-bold hover:bg-slate-50">تصدير (قائمة واحدة)</button>
-                        </div>
-                    </div>
+                    <button onclick="exportInventoryExcel('flat')" class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs">تصدير Excel</button>
                 </div>
             </div>
             <div class="bg-white rounded-[2.5rem] shadow-xl overflow-hidden border">
                 <table class="w-full text-right">
                     <thead>
-                        <tr class="bg-slate-50 border-b"><th class="p-6 text-slate-500 font-black text-center">الكود</th><th class="p-6 text-slate-500 font-black text-center">الرصيد</th><th class="p-6 text-slate-500 font-black text-center">حذف</th></tr>
+                        <tr class="bg-slate-50 border-b">
+                            <th class="p-6 text-slate-500 font-black text-center">الكود</th>
+                            <th class="p-6 text-slate-500 font-black text-center">الرصيد</th>
+                            <th class="p-6 text-slate-500 font-black text-center">حذف</th>
+                        </tr>
                     </thead>
                     <tbody id="sheet-body"></tbody>
                 </table>
@@ -112,14 +114,14 @@
                 <div class="flex justify-between items-center mb-8">
                     <h3 class="text-2xl font-black italic">⚖️ إدارة أوزان القوالب</h3>
                     <div class="flex gap-2">
-                        <button onclick="exportWeightsExcel()" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs">تصدير Excel</button>
-                        <label class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer">استيراد Excel <input type="file" class="hidden" accept=".xlsx, .xls" onchange="importWeightsExcel(event)"></label>
+                        <label class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer">استيراد <input type="file" class="hidden" accept=".xlsx, .xls" onchange="importWeightsExcel(event)"></label>
+                        <button onclick="exportWeightsExcel()" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs">تصدير</button>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 bg-slate-50 rounded-3xl mb-8">
                     <input type="text" id="w-code" placeholder="كود القالب" class="p-4 rounded-2xl border-none font-bold outline-none shadow-sm">
                     <input type="number" id="w-val" placeholder="الوزن (جرام)" class="p-4 rounded-2xl border-none font-bold outline-none shadow-sm">
-                    <button onclick="saveWeight()" class="md:col-span-2 bg-black text-white p-4 rounded-2xl font-black hover:bg-slate-800 transition-all">حفظ الوزن</button>
+                    <button onclick="saveWeight()" class="md:col-span-2 bg-black text-white p-4 rounded-2xl font-black hover:bg-slate-800 transition-all">حفظ/استبدال الوزن</button>
                 </div>
                 <div id="weights-list" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
             </div>
@@ -155,7 +157,7 @@
             });
         };
 
-        // --- إدارة الأوزان (استبدال + Excel) ---
+        // --- إدارة الأوزان ---
         window.saveWeight = () => {
             const c = document.getElementById('w-code').value.trim().toUpperCase();
             const v = parseFloat(document.getElementById('w-val').value);
@@ -163,31 +165,24 @@
             const exists = window.weights[c] !== undefined;
             window.weights[c] = v;
             set(ref(db, 'custom_weights'), window.weights).then(() => {
-                showToast(exists ? "تم استبدال الوزن" : "تم الحفظ");
+                showToast(exists ? "تم استبدال الوزن بنجاح" : "تم حفظ الوزن الجديد");
                 document.getElementById('w-code').value=''; document.getElementById('w-val').value='';
             });
         };
 
-        window.importWeightsExcel = (e) => {
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                const wb = XLSX.read(evt.target.result, { type: 'binary' });
-                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
-                data.forEach(row => {
-                    const c = row["الكود"]?.toString().toUpperCase(); const v = parseFloat(row["الوزن (جرام)"]);
-                    if(c && !isNaN(v)) window.weights[c] = v;
-                });
-                set(ref(db, 'custom_weights'), window.weights).then(() => showToast("تم الاستيراد"));
-            };
-            reader.readAsBinaryString(e.target.files[0]);
+        window.renderWeights = () => {
+            const cont = document.getElementById('weights-list');
+            cont.innerHTML = Object.entries(window.weights).sort().map(([c, v]) => `
+                <div class="bg-white p-4 rounded-2xl border flex justify-between items-center shadow-sm">
+                    <div><div class="text-[10px] text-slate-400 font-bold">${c}</div><div class="font-black text-blue-600">${v}ج</div></div>
+                    <button onclick="deleteWeight('${c}')" class="text-red-300 hover:text-red-500">🗑️</button>
+                </div>
+            `).join('');
         };
 
-        window.exportWeightsExcel = () => {
-            const data = Object.entries(window.weights).map(([c, v]) => ({ "الكود": c, "الوزن (جرام)": v }));
-            XLSX.writeFile(XLSX.utils.book_new(), "Diamond_Weights.xlsx");
-        };
+        window.deleteWeight = (c) => { if(confirm("حذف الوزن؟")) { delete window.weights[c]; set(ref(db, 'custom_weights'), window.weights); }};
 
-        // --- البحث الذكي وتجهيز الطلبية ---
+        // --- معالجة الطلبات ---
         window.handleBulkInput = () => {
             const lines = document.getElementById('home-bulk').value.trim().split('\n');
             orderItems = {};
@@ -195,4 +190,106 @@
                 const parts = l.split(/\t|\s+/);
                 let rawCode = parts[0]?.toUpperCase() || "";
                 let qty = parseFloat(parts[1]);
-                if(rawCode && !isNaN(qty)) orderItems[rawCode] = (orderItems
+                if(rawCode && !isNaN(qty)) orderItems[rawCode] = (orderItems[rawCode] || 0) + qty;
+            });
+            window.updateHomeUI();
+        };
+
+        window.updateHomeUI = () => {
+            const res = document.getElementById('home-results'); res.innerHTML = '';
+            let tW = 0, tQ = 0;
+            Object.entries(orderItems).forEach(([c, q]) => {
+                let weight = window.weights[c]; 
+                if (weight === undefined) {
+                    const num = c.replace(/\D/g, "");
+                    const key = Object.keys(window.weights).find(k => k.replace(/\D/g, "") === num);
+                    weight = key ? window.weights[key] : 0;
+                }
+                tW += (q * weight); tQ += q;
+                res.innerHTML += `<div class="p-4 bg-slate-50 rounded-2xl flex justify-between font-black border ${weight > 0 ? 'border-slate-100' : 'border-red-200 bg-red-50'}">
+                    <span>${c} ${weight > 0 ? '('+weight+'ج)' : '(وزن؟)'}</span>
+                    <span class="text-blue-600">${q} ق</span>
+                </div>`;
+            });
+            document.getElementById('grand-total-weight').innerText = (tW / 1000).toFixed(3);
+            document.getElementById('total-items-count').innerText = tQ;
+            document.getElementById('dispatch-btn').classList.toggle('hidden', tQ === 0);
+        };
+
+        // --- المستودع والعمليات ---
+        window.invAction = (type) => {
+            const user = document.getElementById('user-name').value.trim();
+            if(!user) return alert("اكتب اسم المسؤول");
+            const c = document.getElementById(type+'-c').value.toUpperCase().trim();
+            const q = parseFloat(document.getElementById(type+'-q').value);
+            if(!c || isNaN(q)) return;
+
+            let found = false;
+            for(let cat in window.inventory) {
+                let idx = window.inventory[cat].findIndex(x => x.code === c);
+                if(idx > -1) { window.inventory[cat][idx].base += (type === 'add' ? q : -q); found = true; break; }
+            }
+            if(!found && type === 'add') {
+                let targetCat = (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others');
+                if(!window.inventory[targetCat]) window.inventory[targetCat] = [];
+                window.inventory[targetCat].push({ code: c, base: q });
+            }
+            set(ref(db, 'inventory'), window.inventory);
+            push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إضافة':'صرف', code: c, qty: q, user: user });
+            showToast("تم التحديث بنجاح");
+        };
+
+        window.renderSheets = () => {
+            const tabs = document.getElementById('sheet-tabs');
+            tabs.innerHTML = CATEGORIES.map(c => `<button onclick="window.currentTab='${c}'; window.renderSheets()" class="px-4 py-2 rounded-xl font-black text-xs ${window.currentTab === c ? 'bg-black text-white' : 'text-slate-400'}">${c}</button>`).join('');
+            const body = document.getElementById('sheet-body');
+            let items = window.inventory[window.currentTab] || [];
+            if(window.showLowStock) items = items.filter(i => i.base <= 1);
+            body.innerHTML = items.map(i => `<tr class="border-b"><td class="p-6 text-center font-black ${i.base <= 1 ? 'text-red-600' : ''}">${i.code}</td><td class="p-6 text-center font-bold text-blue-600">${i.base}</td><td class="p-6 text-center"><button onclick="deleteItem('${i.code}')">🗑️</button></td></tr>`).join('');
+        };
+
+        // --- استيراد/تصدير Excel ---
+        window.importInventoryExcel = (e) => {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                const data = XLSX.utils.sheet_to_json(XLSX.read(evt.target.result, {type:'binary'}).Sheets[XLSX.read(evt.target.result, {type:'binary'}).SheetNames[0]]);
+                data.forEach(row => {
+                    const c = row["الكود"]?.toString().toUpperCase(); const q = parseFloat(row["الرصيد"]);
+                    if(c && !isNaN(q)) {
+                        let f = false; for(let cat in window.inventory) { let idx = window.inventory[cat].findIndex(x=>x.code===c); if(idx>-1){window.inventory[cat][idx].base=q; f=true; break;}}
+                        if(!f) { let tc = (CATEGORIES.includes(c.charAt(0))?c.charAt(0):'Others'); if(!window.inventory[tc]) window.inventory[tc]=[]; window.inventory[tc].push({code:c, base:q});}
+                    }
+                });
+                set(ref(db, 'inventory'), window.inventory).then(() => showToast("تم الاستيراد"));
+            };
+            reader.readAsBinaryString(e.target.files[0]);
+        };
+
+        window.exportInventoryExcel = () => {
+            let flat = []; for(let cat in window.inventory) window.inventory[cat].forEach(i => flat.push({"التصنيف": cat, "الكود": i.code, "الرصيد": i.base}));
+            XLSX.writeFile(XLSX.utils.book_new(), "Diamond_Inventory.xlsx");
+        };
+
+        // --- سجل العمليات (Logs) ---
+        onValue(ref(db, 'logs'), s => {
+            const logCont = document.getElementById('activity-log');
+            const data = s.val() ? Object.values(s.val()).reverse().slice(0, 15) : [];
+            logCont.innerHTML = data.map(l => `
+                <div class="p-3 bg-slate-50 flex justify-between rounded-xl border-r-4 border-blue-500 shadow-sm text-[11px]">
+                    <span><b class="text-blue-700">${l.type}</b>: ${l.code} (${l.qty})</span>
+                    <span class="font-bold text-slate-600">${l.user}</span>
+                    <span class="text-slate-400">${l.date}</span>
+                </div>
+            `).join('');
+        });
+
+        // --- التحديثات التلقائية ---
+        onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
+        onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
+
+        window.deleteItem = (c) => { if(confirm("حذف؟")) { for(let cat in window.inventory) window.inventory[cat] = window.inventory[cat].filter(x => x.code !== c); set(ref(db, 'inventory'), window.inventory); }};
+        window.toggleLowStockFilter = () => { window.showLowStock = !window.showLowStock; document.getElementById('filter-low-btn').innerText = window.showLowStock ? "إظهار الكل" : "النواقص (1-0)"; window.renderSheets(); };
+        function showToast(m) { const el = document.getElementById('toast'); el.innerText = m; el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`; setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 3000); }
+    </script>
+</body>
+</html>
