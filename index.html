@@ -19,7 +19,7 @@
     <nav class="bg-white border-b sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 h-20 flex justify-between items-center">
             <div class="flex items-center gap-4">
-                <img src="https://i.ibb.co/pBTm0m4/Screenshot-2026-04-12-134935.png" alt="Diamond Plast" class="h-14 w-auto object-contain">
+                <img src="https://i.ibb.co/pBTm0m4/Screenshot-2026-04-12-134935.png" alt="Diamond Plast" class="h-14 w-auto object-contain" onerror="this.src='https://placehold.co/150x50?text=Diamond+Plast'">
                 <h1 class="text-xl font-black hidden md:block">Diamond Plast</h1>
             </div>
             <div class="flex bg-slate-100 p-1.5 rounded-2xl gap-1">
@@ -60,7 +60,7 @@
                 <div class="lg:col-span-4 space-y-6">
                     <div class="bg-white p-6 rounded-[2rem] shadow-md border border-slate-100">
                         <label class="block text-[10px] font-black text-slate-400 mb-2 uppercase">اسم المسؤول</label>
-                        <input type="text" id="user-name" placeholder="ادخل اسمك هنا" class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none">
+                        <input type="text" id="user-name" placeholder="ادخل اسمك هنا" class="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold outline-none ring-2 ring-red-100">
                     </div>
                     <div class="bg-slate-900 text-white rounded-[2.5rem] p-8 shadow-xl">
                         <h3 class="font-black text-xl mb-4 italic">📥 إضافة رصيد</h3>
@@ -86,8 +86,8 @@
             <div class="bg-white p-6 rounded-[2rem] shadow-sm flex flex-wrap gap-4 items-center justify-between border">
                 <div id="sheet-tabs" class="flex gap-2 overflow-x-auto p-1 no-scrollbar flex-1"></div>
                 <div class="flex gap-2">
-                    <button id="filter-low-btn" onclick="toggleLowStockFilter()" class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs border border-amber-200">إظهار النواقص فقط</button>
-                    <label class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs cursor-pointer">استيراد المخزن <input type="file" class="hidden" accept=".xlsx, .xls" onchange="importInventoryExcel(event)"></label>
+                    <button id="filter-low-btn" onclick="toggleLowStockFilter()" class="bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs border border-amber-200">إظهار النواقص (1-0)</button>
+                    <label class="bg-blue-600 text-white px-4 py-2 rounded-xl font-bold text-xs cursor-pointer">استيراد Excel <input type="file" class="hidden" accept=".xlsx, .xls" onchange="importInventoryExcel(event)"></label>
                     <div class="relative group">
                         <button class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs">تصدير المخزن ⬇️</button>
                         <div class="absolute left-0 mt-2 w-48 bg-white border rounded-xl shadow-xl hidden group-hover:block z-[60]">
@@ -159,7 +159,8 @@
         window.currentTab = 'T';
         window.showLowStock = false;
         let orderItems = {};
-        const CATEGORIES = ['T', 'S', 'C', 'G', 'R', 'E', 'Y&', '10', 'Others'];
+        // حذف قسم "10" كما طلبت
+        const CATEGORIES = ['T', 'S', 'C', 'G', 'R', 'E', 'Y&', 'Others'];
 
         window.showPage = (p) => {
             ['home', 'sheets', 'weights'].forEach(id => {
@@ -168,7 +169,7 @@
             });
         };
 
-        // إدارة الأوزان (بدون تغيير)
+        // إدارة الأوزان
         window.saveWeight = () => {
             const c = document.getElementById('w-code').value.trim().toUpperCase();
             const v = parseFloat(document.getElementById('w-val').value);
@@ -200,11 +201,13 @@
             XLSX.utils.book_append_sheet(wb, ws, "Weights"); XLSX.writeFile(wb, "Diamond_Weights.xlsx");
         };
 
-        // المستودع (التحديثات الجديدة)
+        // المستودع
         window.invAction = (type) => {
+            const user = document.getElementById('user-name').value.trim();
+            if(!user) { alert("برجاء كتابة اسم المسؤول أولاً"); return; }
+            
             const c = document.getElementById(type+'-c').value.toUpperCase().trim();
             const q = parseFloat(document.getElementById(type+'-q').value);
-            const user = document.getElementById('user-name').value || "غير معروف";
             if(!c || isNaN(q)) return;
 
             let found = false;
@@ -213,7 +216,7 @@
                 if(idx > -1) { window.inventory[cat][idx].base += (type === 'add' ? q : -q); found = true; break; }
             }
             if(!found && type === 'add') {
-                let targetCat = c.startsWith('10') ? '10' : (c.startsWith('Y&') ? 'Y&' : (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others'));
+                let targetCat = (c.startsWith('Y&') ? 'Y&' : (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others'));
                 if(!window.inventory[targetCat]) window.inventory[targetCat] = [];
                 window.inventory[targetCat].push({ code: c, base: q });
             }
@@ -225,8 +228,7 @@
 
         window.toggleLowStockFilter = () => {
             window.showLowStock = !window.showLowStock;
-            document.getElementById('filter-low-btn').innerText = window.showLowStock ? "إظهار الكل" : "إظهار النواقص فقط";
-            document.getElementById('filter-low-btn').className = window.showLowStock ? "bg-red-600 text-white px-4 py-2 rounded-xl font-bold text-xs" : "bg-amber-100 text-amber-700 px-4 py-2 rounded-xl font-bold text-xs border border-amber-200";
+            document.getElementById('filter-low-btn').innerText = window.showLowStock ? "إظهار الكل" : "إظهار النواقص (1-0)";
             window.renderSheets();
         };
 
@@ -235,12 +237,12 @@
             tabs.innerHTML = CATEGORIES.map(c => `<button onclick="window.currentTab='${c}'; window.renderSheets()" class="px-5 py-2 rounded-xl font-black transition-all ${window.currentTab === c ? 'bg-black text-white' : 'text-slate-400'}">${c}</button>`).join('');
             const body = document.getElementById('sheet-body');
             let items = window.inventory[window.currentTab] || [];
-            if(window.showLowStock) items = items.filter(i => i.base <= 0);
+            if(window.showLowStock) items = items.filter(i => i.base <= 1); // تعديل الفلتر ليكون 1 أو أقل
 
             body.innerHTML = items.map(i => `
                 <tr class="border-b hover:bg-slate-50">
-                    <td class="p-6 text-center font-black ${i.base <= 0 ? 'text-red-600 underline' : ''}">${i.code}</td>
-                    <td class="p-6 text-center font-bold ${i.base <= 0 ? 'text-red-600 animate-pulse' : 'text-blue-600'}">${i.base}</td>
+                    <td class="p-6 text-center font-black ${i.base <= 1 ? 'text-red-600 underline' : ''}">${i.code}</td>
+                    <td class="p-6 text-center font-bold ${i.base <= 1 ? 'text-red-600 animate-pulse' : 'text-blue-600'}">${i.base}</td>
                     <td class="p-6 text-center"><button onclick="window.deleteItem('${i.code}')" class="text-slate-300 hover:text-red-500">🗑️</button></td>
                 </tr>`).join('');
         };
@@ -261,7 +263,7 @@
                             if(idx > -1) { window.inventory[cat][idx].base = q; found = true; break; }
                         }
                         if(!found) {
-                            let targetCat = c.startsWith('10') ? '10' : (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others');
+                            let targetCat = (CATEGORIES.includes(c.charAt(0)) ? c.charAt(0) : 'Others');
                             if(!window.inventory[targetCat]) window.inventory[targetCat] = [];
                             window.inventory[targetCat].push({ code: c, base: q });
                         }
@@ -308,7 +310,8 @@
             document.getElementById('dispatch-btn').classList.toggle('hidden', tQ === 0);
         };
         window.processFullDispatch = () => {
-            const user = document.getElementById('user-name').value || "غير معروف";
+            const user = document.getElementById('user-name').value.trim();
+            if(!user) { alert("برجاء كتابة اسم المسؤول أولاً"); return; }
             if(!confirm("صرف الطلبية؟")) return;
             Object.entries(orderItems).forEach(([c, q]) => {
                 for(let cat in window.inventory) {
@@ -324,8 +327,12 @@
         onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
         onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
         onValue(ref(db, 'logs'), s => {
-            const data = s.val() ? Object.values(s.val()).reverse().slice(0, 10) : [];
-            document.getElementById('activity-log').innerHTML = data.map(l => `<div class="p-3 bg-slate-50 text-[11px] flex justify-between shadow-sm rounded-xl border-r-4 border-blue-500"><span class="font-black">${l.type} | ${l.code}</span><span class="text-slate-500">${l.user}</span></div>`).join('');
+            const data = s.val() ? Object.values(s.val()).reverse().slice(0, 15) : [];
+            document.getElementById('activity-log').innerHTML = data.map(l => `<div class="p-3 bg-slate-50 text-[11px] flex justify-between shadow-sm rounded-xl border-r-4 border-blue-500">
+                <span class="font-black">${l.type} | ${l.code} (${l.qty})</span>
+                <span class="text-slate-500 font-bold">${l.user}</span>
+                <span class="text-slate-400">${l.date}</span>
+            </div>`).join('');
         });
 
         function showToast(m) {
