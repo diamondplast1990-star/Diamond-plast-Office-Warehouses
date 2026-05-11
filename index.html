@@ -154,89 +154,52 @@
             });
         };
 
-        // --- وظيفة البحث الذكي عن الصنف (لتجنب تكرار الأكواد) ---
         function findItemCategory(code) {
             const cleanCode = code.toUpperCase().trim();
-            // 1. البحث عن التطابق التام في كل المخزن
-            for (let cat in window.inventory) {
-                if (window.inventory[cat].some(i => i.code === cleanCode)) return cat;
-            }
-            // 2. البحث عن تطابق بدون حرف T (لو الكود 7000 والمسجل T7000)
+            for (let cat in window.inventory) { if (window.inventory[cat].some(i => i.code === cleanCode)) return cat; }
             const numericPart = cleanCode.replace(/\D/g, "");
-            for (let cat in window.inventory) {
-                let found = window.inventory[cat].find(i => i.code.replace(/\D/g, "") === numericPart);
-                if (found) return cat;
-            }
-            // 3. لو صنف جديد تماماً، حدد الفئة بناءً على أول حرف
+            for (let cat in window.inventory) { let found = window.inventory[cat].find(i => i.code.replace(/\D/g, "") === numericPart); if (found) return cat; }
             const firstChar = cleanCode.charAt(0);
             if (CATEGORIES.includes(firstChar)) return firstChar;
-            // 4. لو رقم خالص، افترض إنه تبع T (أو غيرها حسب رغبتك) بدلاً من Others
-            if (!isNaN(firstChar)) return 'T'; 
+            if (!isNaN(firstChar) && firstChar !== "") return 'T'; 
             return 'Others';
         }
 
-        function showSmartToast(action, code, qty, category) {
-            const el = document.getElementById('toast');
-            const msg = action === 'add' ? `📥 إضافة (${qty}) لـ (${code}) في شيت [${category}]` : `📤 صرف (${qty}) من (${code}) من شيت [${category}]`;
-            el.innerText = msg;
+        function showSmartToast(msg) {
+            const el = document.getElementById('toast'); el.innerText = msg;
             el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
             setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 4000);
         }
 
-        // --- العمليات الجماعية (إضافة/صرف) مع معالجة ذكية للأكواد ---
         window.processBulkAction = (type) => {
-            const user = document.getElementById('user-name').value.trim();
-            if(!user) return alert("اكتب اسم المسؤول أولاً");
-            
+            const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
             Object.entries(orderItems).forEach(([code, qty]) => {
-                const targetCat = findItemCategory(code);
-                if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
-                
-                // البحث عن الصنف داخل الفئة المحددة (سواء بالتطابق التام أو الرقمي)
+                const targetCat = findItemCategory(code); if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
                 let itm = window.inventory[targetCat].find(x => x.code === code.toUpperCase() || x.code.replace(/\D/g,"") === code.replace(/\D/g,""));
-                
-                if (itm) {
-                    itm.base += (type === 'add' ? qty : -qty);
-                } else if (type === 'add') {
-                    // إضافة كود جديد بالفئة الصحيحة
-                    window.inventory[targetCat].push({ code: code.toUpperCase(), base: qty });
-                }
+                if (itm) itm.base += (type === 'add' ? qty : -qty);
+                else if (type === 'add') window.inventory[targetCat].push({ code: code.toUpperCase(), base: qty });
                 push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: code, qty: qty, user: user });
             });
-
             set(ref(db, 'inventory'), window.inventory).then(() => {
                 document.getElementById('home-bulk').value = ''; orderItems = {}; window.updateHomeUI();
-                const el = document.getElementById('toast');
-                el.innerText = type === 'add' ? "تم إرجاع الطلبية وتوجيهها للفئات الصحيحة ✅" : "تم صرف الطلبية وتحديث المخزون 🚀";
-                el.className = `fixed bottom-10 left-1/2 -translate-x-1/2 transition-all duration-500 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black translate-y-0 opacity-100`;
-                setTimeout(() => { el.classList.add('translate-y-20'); el.classList.remove('opacity-100'); }, 4000);
+                showSmartToast(type === 'add' ? "تم إرجاع الطلبية بنجاح ✅" : "تم صرف الطلبية بنجاح 🚀");
             });
         };
 
-        // --- العمليات المنفردة مع البحث الذكي ---
         window.invAction = (type) => {
             const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
             const c = document.getElementById(type+'-c').value.toUpperCase().trim(); const q = parseFloat(document.getElementById(type+'-q').value);
             if(!c || isNaN(q)) return;
-
-            const targetCat = findItemCategory(c);
-            if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
-            
+            const targetCat = findItemCategory(c); if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
             let itm = window.inventory[targetCat].find(x => x.code === c || x.code.replace(/\D/g,"") === c.replace(/\D/g,""));
-            
-            if (itm) {
-                itm.base += (type === 'add' ? q : -q);
-            } else if (type === 'add') {
-                window.inventory[targetCat].push({ code: c, base: q });
-            }
-            
+            if (itm) itm.base += (type === 'add' ? q : -q);
+            else if (type === 'add') window.inventory[targetCat].push({ code: c, base: q });
             set(ref(db, 'inventory'), window.inventory);
             push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إضافة':'صرف', code: c, qty: q, user: user });
-            showSmartToast(type, c, q, targetCat);
+            showSmartToast(`${type==='add'?'إضافة':'صرف'} (${q}) لـ (${c}) في [${targetCat}]`);
             document.getElementById(type+'-c').value=''; document.getElementById(type+'-q').value='';
         };
 
-        // --- باقي الوظائف (Excel, Weights, Render) بدون تغيير لضمان الثبات ---
         window.handleBulkInput = () => {
             const lines = document.getElementById('home-bulk').value.trim().split('\n'); orderItems = {};
             lines.forEach(l => { const p = l.split(/\t|\s+/); let c = p[0]?.toUpperCase() || ""; let q = parseFloat(p[1]); if(c && !isNaN(q)) orderItems[c] = (orderItems[c] || 0) + q; });
@@ -261,6 +224,24 @@
             set(ref(db, 'custom_weights'), window.weights).then(() => { document.getElementById('w-code').value=''; document.getElementById('w-val').value=''; });
         };
 
+        window.exportWeightsExcel = () => {
+            if (Object.keys(window.weights).length === 0) return alert("لا توجد أوزان للتصدير");
+            const data = Object.entries(window.weights).map(([c, v]) => ({ "الكود": c, "الوزن (جرام)": v }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "الأوزان");
+            XLSX.writeFile(wb, "Diamond_Plast_Weights.xlsx");
+        };
+
+        window.importWeightsExcel = (e) => {
+            const reader = new FileReader(); reader.onload = (evt) => {
+                const wb = XLSX.read(evt.target.result, { type: 'binary' });
+                const data = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
+                data.forEach(row => { const c = row["الكود"]?.toString().toUpperCase(); const v = parseFloat(row["الوزن (جرام)"] || 0); if(c && v) window.weights[c] = v; });
+                set(ref(db, 'custom_weights'), window.weights).then(() => showSmartToast("تم استيراد الأوزان بنجاح"));
+            }; reader.readAsBinaryString(e.target.files[0]);
+        };
+
         window.exportInventoryExcel = (mode) => {
             const wb = XLSX.utils.book_new();
             if(mode === 'tabs') { CATEGORIES.forEach(cat => { const d = (window.inventory[cat] || []).map(i => ({ "الكود": i.code, "الرصيد": i.base })); if(d.length > 0) XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(d), cat); }); }
@@ -280,7 +261,6 @@
             }; reader.readAsBinaryString(e.target.files[0]);
         };
 
-        window.exportWeightsExcel = () => { const d = Object.entries(window.weights).map(([c,v])=>({"الكود":c,"الوزن":v})); XLSX.writeFile(XLSX.utils.book_new(), "Weights.xlsx"); };
         onValue(ref(db, 'inventory'), s => { window.inventory = s.val() || {}; window.renderSheets(); });
         onValue(ref(db, 'custom_weights'), s => { window.weights = s.val() || {}; window.renderWeights(); window.updateHomeUI(); });
         onValue(ref(db, 'logs'), s => {
