@@ -154,34 +154,42 @@
 
         // --- وظيفة التصنيف الذكي المحسنة (إصلاح مشكلة الـ T و D والعربي) ---
         function findItemCategory(code) {
-            const cleanCode = code.toUpperCase().trim();
-            const firstChar = cleanCode.charAt(0);
+            const val = code.toUpperCase().trim();
             
-            // 1. فحص إذا كان الاسم يحتوي على حروف عربية
-            const hasArabic = /[\u0600-\u06FF]/.test(cleanCode);
-            if (hasArabic) return 'Others';
+            // 1. قاعدة حرف D (الأولوية القصوى): أي كود يبدأ بـ D يذهب فوراً لـ Others
+            if (val.startsWith('D')) return 'Others';
 
-            // 2. فحص إذا كان يبدأ بحرف D
-            if (firstChar === 'D') return 'Others';
+            // 2. النصوص العربية أو كلمة رصيد
+            const hasArabic = /[\u0600-\u06FF]/.test(val);
+            if (hasArabic || val.includes("رصيد")) return 'Others';
 
-            // 3. فحص إذا كان يبدأ برقم (أكواد قسم T التي تبدأ بـ 7 أو أي رقم)
-            if (!isNaN(firstChar) && firstChar !== "") return 'T';
+            // 3. القواعد الثابتة (بحث عن الحرف والرقم معاً)
+            if (val.includes('T') && val.includes('7')) return 'T';
+            if (val.includes('S') && val.includes('4')) return 'S';
+            if (val.includes('C') && val.includes('5')) return 'C';
+            if (val.includes('G') && val.includes('8')) return 'G';
+            if (val.includes('E') && val.includes('3')) return 'E';
+            if (val.includes('R') && val.includes('6')) return 'R';
 
-            // 4. التصنيف بناءً على الحروف المسجلة
-            if (CATEGORIES.includes(firstChar)) return firstChar;
+            // 4. المجموعات الخاصة (تبدأ بـ 10 أو 20)
+            if (val.startsWith('10') || val.startsWith('20')) return 'Y&';
 
-            // 5. أي شيء آخر يذهب لـ Others
-            return 'Others';
-        }
-
-        // بحث ذكي في المخزون لضمان دقة البيانات
-        function getSmartStock(code) {
-            const cleanCode = code.toUpperCase().trim();
-            for (let cat in window.inventory) {
-                let itm = window.inventory[cat].find(x => x.code === cleanCode);
-                if (itm) return { ...itm, cat };
+            // 5. ذكاء التوجيه عند إدخال رقم فقط
+            if (/^\d+$/.test(val)) { 
+                if (val.includes('7')) return 'T';
+                if (val.includes('4')) return 'S';
+                if (val.includes('5')) return 'C';
+                if (val.includes('8')) return 'G';
+                if (val.includes('3')) return 'E';
+                if (val.includes('6')) return 'R';
+                return 'T'; // الافتراضي للأرقام الأخرى
             }
-            return null;
+
+            // 6. التحقق من الحرف الأول إذا كان ضمن الفئات المعروفة
+            const firstChar = val.charAt(0);
+            if (['T', 'S', 'C', 'G', 'R', 'E', 'Y&'].includes(firstChar)) return firstChar;
+
+            return 'Others';
         }
 
         window.showSmartToast = (msg) => {
