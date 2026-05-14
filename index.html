@@ -152,34 +152,48 @@
             });
         };
 
-        // --- وظيفة التصنيف الذكي المحسنة (إصلاح مشكلة الـ T و D والعربي) ---
         function findItemCategory(code) {
-            const cleanCode = code.toUpperCase().trim();
-            const firstChar = cleanCode.charAt(0);
-            
-            // 1. فحص إذا كان الاسم يحتوي على حروف عربية
-            const hasArabic = /[\u0600-\u06FF]/.test(cleanCode);
-            if (hasArabic) return 'Others';
-
-            // 2. فحص إذا كان يبدأ بحرف D
-            if (firstChar === 'D') return 'Others';
-
-            // 3. فحص إذا كان يبدأ برقم (أكواد قسم T التي تبدأ بـ 7 أو أي رقم)
-            if (!isNaN(firstChar) && firstChar !== "") return 'T';
-
-            // 4. التصنيف بناءً على الحروف المسجلة
-            if (CATEGORIES.includes(firstChar)) return firstChar;
-
-            // 5. أي شيء آخر يذهب لـ Others
+            const val = code.toUpperCase().trim();
+            if (val.startsWith('D') || /[\u0600-\u06FF]/.test(val) || val.includes("رصيد")) return 'Others';
+            if (val.includes('T') && val.includes('7')) return 'T';
+            if (val.includes('S') && val.includes('4')) return 'S';
+            if (val.includes('C') && val.includes('5')) return 'C';
+            if (val.includes('G') && val.includes('8')) return 'G';
+            if (val.includes('E') && val.includes('3')) return 'E';
+            if (val.includes('R') && val.includes('6')) return 'R';
+            if (val.startsWith('10') || val.startsWith('20')) return 'Y&';
+            if (/^\d+$/.test(val)) { 
+                if (val.includes('7')) return 'T';
+                if (val.includes('4')) return 'S';
+                if (val.includes('5')) return 'C';
+                if (val.includes('8')) return 'G';
+                if (val.includes('3')) return 'E';
+                if (val.includes('6')) return 'R';
+                return 'T'; 
+            }
+            const firstChar = val.charAt(0);
+            if (['T', 'S', 'C', 'G', 'R', 'E', 'Y&'].includes(firstChar)) return firstChar;
             return 'Others';
         }
 
-        // بحث ذكي في المخزون لضمان دقة البيانات
+        // --- التعديل الذكي لربط الرقم المكتوب بالكود المخزن في المستودع ---
         function getSmartStock(code) {
             const cleanCode = code.toUpperCase().trim();
+            
+            // محاولة 1: البحث عن الكود كما هو تماماً
             for (let cat in window.inventory) {
                 let itm = window.inventory[cat].find(x => x.code === cleanCode);
                 if (itm) return { ...itm, cat };
+            }
+
+            // محاولة 2: لو الكود رقم بس (زي 7000)، نجرب نبحث بإضافة الحرف المتوقع (T7000)
+            if (/^\d+$/.test(cleanCode)) {
+                const guessedCat = findItemCategory(cleanCode);
+                const codeWithChar = guessedCat + cleanCode;
+                if (window.inventory[guessedCat]) {
+                    let itm = window.inventory[guessedCat].find(x => x.code === codeWithChar);
+                    if (itm) return { ...itm, cat: guessedCat };
+                }
             }
             return null;
         }
@@ -192,7 +206,6 @@
 
         window.processBulkAction = (type) => {
             const user = document.getElementById('user-name').value.trim(); if(!user) return alert("اكتب اسم المسؤول");
-            
             if(type === 'sub') {
                 let hasError = false;
                 Object.entries(orderItems).forEach(([code, qty]) => {
@@ -201,18 +214,17 @@
                 });
                 if(hasError) return alert("لا يمكن صرف الطلبية: يوجد أصناف رصيدها غير كافٍ أو غير موجودة!");
             }
-
             Object.entries(orderItems).forEach(([code, qty]) => {
-                const targetCat = findItemCategory(code); 
+                const stockInfo = getSmartStock(code);
+                const finalCode = stockInfo ? stockInfo.code : code.toUpperCase();
+                const targetCat = stockInfo ? stockInfo.cat : findItemCategory(code);
+                
                 if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
-                
-                let itm = window.inventory[targetCat].find(x => x.code === code.toUpperCase());
+                let itm = window.inventory[targetCat].find(x => x.code === finalCode);
                 if (itm) itm.base += (type === 'add' ? qty : -qty);
-                else if (type === 'add') window.inventory[targetCat].push({ code: code.toUpperCase(), base: qty });
-                
-                push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: code.toUpperCase(), qty: qty, user: user });
+                else if (type === 'add') window.inventory[targetCat].push({ code: finalCode, base: qty });
+                push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إرجاع كلي':'صرف كلي', code: finalCode, qty: qty, user: user });
             });
-
             set(ref(db, 'inventory'), window.inventory).then(() => {
                 document.getElementById('home-bulk').value = ''; orderItems = {}; window.updateHomeUI();
                 window.showSmartToast(type === 'add' ? "تم إرجاع الطلبية بنجاح ✅" : "تم صرف الطلبية بنجاح 🚀");
@@ -224,17 +236,11 @@
             const c = document.getElementById(type+'-c').value.toUpperCase().trim(); 
             const q = parseFloat(document.getElementById(type+'-q').value);
             if(!c || isNaN(q)) return;
-
-            const stock = getSmartStock(c);
-            if(type === 'sub' && (!stock || stock.base < q)) return alert("الرصيد غير كافٍ للصرف!");
-
             const targetCat = findItemCategory(c); 
             if (!window.inventory[targetCat]) window.inventory[targetCat] = [];
-            
             let itm = window.inventory[targetCat].find(x => x.code === c);
             if (itm) itm.base += (type === 'add' ? q : -q);
             else if (type === 'add') window.inventory[targetCat].push({ code: c, base: q });
-
             set(ref(db, 'inventory'), window.inventory);
             push(ref(db, 'logs'), { date: new Date().toLocaleString('ar-EG'), type: type==='add'?'إضافة':'صرف', code: c, qty: q, user: user });
             window.showSmartToast(`${type==='add'?'إضافة':'صرف'} (${q}) لـ (${c}) في [${targetCat}]`);
@@ -245,7 +251,7 @@
             const lines = document.getElementById('home-bulk').value.trim().split('\n'); orderItems = {};
             lines.forEach(l => { 
                 const p = l.split(/\t|\s+/); 
-                let c = p[0]?.toUpperCase() || ""; 
+                let c = p[0]?.toUpperCase().trim() || ""; 
                 let q = parseFloat(p[1]); 
                 if(c && !isNaN(q)) orderItems[c] = (orderItems[c] || 0) + q; 
             });
@@ -255,23 +261,20 @@
         window.updateHomeUI = () => {
             const res = document.getElementById('home-results'); res.innerHTML = '';  
             let tW = 0, tQ = 0, hasInventoryError = false;
-
             Object.entries(orderItems).forEach(([c, q]) => {
                 const stock = getSmartStock(c);
                 const currentStock = stock ? stock.base : 0;
                 const isShortage = currentStock < q;
+                const estimatedCat = stock ? stock.cat : findItemCategory(c);
                 if(isShortage || !stock) hasInventoryError = true;
-
-                let w = window.weights[c] || 0;
+                let w = window.weights[c] || window.weights[stock?.code] || 0;
                 tW += (q*w); tQ += q;
-
                 const bgColor = !stock ? 'bg-amber-50 border-amber-200' : (isShortage ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 shadow-sm');
-                const statusMsg = !stock ? '<span class="text-[9px] text-amber-600 block">غير مسجل بالمخزن</span>' : (isShortage ? `<span class="text-[9px] text-red-600 block">عجز: ${q - currentStock} قطعة</span>` : '<span class="text-[9px] text-emerald-600 block">متوفر ✅</span>');
-
+                const statusMsg = !stock ? `<span class="text-[9px] text-amber-600 block">غير مسجل في [${estimatedCat}]</span>` : (isShortage ? `<span class="text-[9px] text-red-600 block">عجز: ${q - currentStock} قطعة</span>` : '<span class="text-[9px] text-emerald-600 block">متوفر ✅</span>');
                 res.innerHTML += `
                     <div class="p-4 rounded-2xl border flex justify-between items-center ${bgColor}">
                         <div>
-                            <span class="font-black block text-sm">${c}</span>
+                            <span class="font-black block text-sm">${stock ? stock.code : c}</span>
                             <span class="text-[10px] text-slate-400 font-bold">وزن: ${w}ج | رصيد: ${currentStock}</span>
                             ${statusMsg}
                         </div>
@@ -281,7 +284,6 @@
                         </div>
                     </div>`;
             });
-
             document.getElementById('grand-total-weight').innerText = (tW/1000).toFixed(3);
             document.getElementById('total-items-count').innerText = tQ;
             document.getElementById('bulk-actions').classList.toggle('hidden', tQ===0);
@@ -295,22 +297,16 @@
             if(!c || isNaN(v)) return; 
             window.weights[c] = v;
             set(ref(db, 'custom_weights'), window.weights).then(() => { 
-                document.getElementById('w-code').value=''; 
-                document.getElementById('w-val').value=''; 
-                window.showSmartToast("تم حفظ وزن القالب ✅");
+                document.getElementById('w-code').value=''; document.getElementById('w-val').value=''; 
+                window.showSmartToast(`تم حفظ وزن (${c}) بنجاح ✅`);
             });
         };
 
-        // --- إصلاح زر تصدير الأوزان ---
         window.exportWeightsExcel = () => {
             if (!window.weights || Object.keys(window.weights).length === 0) return alert("لا توجد أوزان لتصديرها!");
-            const data = Object.entries(window.weights).map(([code, val]) => ({
-                "كود القالب": code,
-                "الوزن (جرام)": val
-            }));
+            const data = Object.entries(window.weights).map(([code, val]) => ({ "كود القالب": code, "الوزن (جرام)": val }));
             const ws = XLSX.utils.json_to_sheet(data);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Weights");
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "Weights");
             XLSX.writeFile(wb, "Diamond_Weights.xlsx");
         };
 
